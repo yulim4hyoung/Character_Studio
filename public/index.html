@@ -164,6 +164,39 @@
           <div id="consumerResults" class="consumer-chat"></div>
         </div>
       </section>
+
+      <section id="persuade" class="screen">
+        <div class="toolbar">
+          <h2 id="persuadeTitle">소비자 설득</h2>
+          <button type="button" data-route="consumer">←</button>
+        </div>
+        <div class="workspace">
+          <section class="panel">
+            <div class="panel-head"><h3>1:1 설득</h3><span id="persuadeMeta" class="muted"></span></div>
+            <div id="persuadeLog" class="chat"></div>
+            <form id="persuadeForm" class="composer">
+              <textarea id="persuadeInput" rows="2" placeholder="이 소비자를 설득해 보세요."></textarea>
+              <button class="primary" type="submit">보내기</button>
+            </form>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h3>구매 확률</h3></div>
+            <div class="persuade-side">
+              <div id="probStage" class="prob-stage">
+                <div id="probValue" class="prob-value">--%</div>
+                <div class="prob-bar"><div id="probFill" class="prob-fill"></div></div>
+                <div id="probDelta" class="prob-delta"></div>
+                <p class="muted" style="text-align:center;margin:0">대화를 나눌수록 구매 확률이 실시간으로 바뀝니다.</p>
+              </div>
+              <div id="reportPanel" class="report-panel" hidden></div>
+            </div>
+            <div class="image-actions">
+              <button id="finishPersuade" type="button">완료 · 보고서 분석</button>
+              <button id="downloadReport" type="button" hidden>보고서 다운로드</button>
+            </div>
+          </section>
+        </div>
+      </section>
     </main>
   </div>
 

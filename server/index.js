@@ -50,6 +50,16 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "POST" && url.pathname === "/api/persuade") {
+      await handlePersuade(req, res);
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/persuade-report") {
+      await handlePersuadeReport(req, res);
+      return;
+    }
+
     if (req.method !== "GET" && req.method !== "HEAD") {
       sendJson(res, 405, { error: "Method not allowed" });
       return;
@@ -442,6 +452,154 @@ async function handleConsumer(req, res) {
   } catch (error) {
     sendJson(res, 502, { error: error.message || "consumer simulation failed" });
   }
+}
+
+async function handlePersuade(req, res) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    sendJson(res, 500, { error: "OPENROUTER_API_KEY is not configured" });
+    return;
+  }
+
+  const body = await readJson(req);
+  const product = String(body.product || "").trim();
+  const consumer = body.consumer || {};
+  const history = Array.isArray(body.messages) ? body.messages : [];
+
+  if (!product || !consumer.name) {
+    sendJson(res, 400, { error: "product and consumer are required" });
+    return;
+  }
+
+  const systemPrompt = [
+    `당신은 "${consumer.name}" 유형의 소비자를 1인칭으로 연기합니다. 판매자(사용자)가 아래 제품을 두고 당신을 설득합니다.`,
+    consumer.need ? `당신의 핵심 니즈: ${consumer.need}` : "",
+    consumer.mood ? `당신의 기본 태도: ${consumer.mood}` : "",
+    consumer.reaction ? `이 제품에 대한 당신의 첫 반응: ${consumer.reaction}` : "",
+    "",
+    "[제품/서비스 정보]",
+    product,
+    "",
+    "[규칙]",
+    "1. 해당 유형의 소비자답게 현실적으로 반응하세요. 쉽게 넘어가지 말고, 니즈가 충족되면 마음을 여세요.",
+    "2. 설득이 설득력 있고 니즈에 맞으면 구매 의향이 오르고, 부실하거나 니즈와 어긋나면 내려갑니다.",
+    "3. 매 턴, 지금 시점의 구매 의향을 0~100 정수로 평가하세요.",
+    "4. 아직 대화가 없으면(첫 진입) 제품에 대한 솔직한 첫인상을 1~2문장으로 말하고 시작 구매 의향을 추정하세요.",
+    "5. reply는 소비자로서의 발화 1~3문장입니다. 메타 발언이나 설명은 넣지 마세요.",
+    "6. 반드시 아래 JSON 객체로만 출력하세요. 코드펜스나 다른 텍스트는 절대 넣지 마세요.",
+    '{"reply":"소비자 발화","probability":정수}'
+  ].filter(Boolean).join("\n");
+
+  const messages = [{ role: "system", content: systemPrompt }];
+  for (const item of history) {
+    const role = item.role === "user" ? "user" : "assistant";
+    const content = String(item.content || "").trim();
+    if (content) messages.push({ role, content });
+  }
+  if (history.length === 0) {
+    messages.push({ role: "user", content: "(대화 시작) 제품에 대한 첫인상과 시작 구매 의향을 알려주세요." });
+  }
+
+  try {
+    const out = await requestChatCompletion(apiKey, textModel(), messages, 0.7, 500);
+    const obj = parseJsonObject(out);
+    if (!obj) {
+      sendJson(res, 502, { error: "모델 응답을 파싱하지 못했습니다." });
+      return;
+    }
+    sendJson(res, 200, {
+      reply: String(obj.reply || "").trim(),
+      probability: clampProbability(obj.probability)
+    });
+  } catch (error) {
+    sendJson(res, 502, { error: error.message || "persuade failed" });
+  }
+}
+
+async function handlePersuadeReport(req, res) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    sendJson(res, 500, { error: "OPENROUTER_API_KEY is not configured" });
+    return;
+  }
+
+  const body = await readJson(req);
+  const product = String(body.product || "").trim();
+  const consumer = body.consumer || {};
+  const history = Array.isArray(body.messages) ? body.messages : [];
+  const probability = clampProbability(body.probability);
+
+  if (!product || !consumer.name || history.length === 0) {
+    sendJson(res, 400, { error: "product, consumer, messages are required" });
+    return;
+  }
+
+  const systemPrompt = [
+    "당신은 세일즈 코치입니다. 아래는 판매자가 특정 유형의 가상 소비자를 1:1로 설득한 대화입니다.",
+    "이 대화를 분석해, 해당 소비자의 구매를 이끌어내기 위한 실전 보고서를 한국어 마크다운으로 작성하세요.",
+    "아래 구조를 반드시 따르세요:",
+    `# 설득 보고서 — ${consumer.name}`,
+    "## 요약",
+    "## 잘한 점",
+    "## 아쉬운 점 / 놓친 포인트",
+    "## 이 소비자의 핵심 구매 트리거",
+    "## 다음에 시도할 설득 전략 (3~5개, 구체적이고 실행 가능하게)",
+    "마크다운 외의 군더더기 텍스트(코드펜스, 머리말)는 출력하지 마세요."
+  ].join("\n");
+
+  const transcript = history
+    .map((m) => `${m.role === "user" ? "판매자" : "소비자"}: ${String(m.content || "").trim()}`)
+    .join("\n");
+
+  const userContent = [
+    `소비자 유형: ${consumer.name}`,
+    consumer.need ? `니즈: ${consumer.need}` : "",
+    consumer.mood ? `태도: ${consumer.mood}` : "",
+    `최종 구매 의향: ${probability}%`,
+    "",
+    "[제품/서비스 정보]",
+    product,
+    "",
+    "[대화 기록]",
+    transcript
+  ].filter(Boolean).join("\n");
+
+  try {
+    const report = await requestChatCompletion(apiKey, textModel(), [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userContent }
+    ], 0.5, 1500);
+    sendJson(res, 200, { report: stripCodeFence(report) });
+  } catch (error) {
+    sendJson(res, 502, { error: error.message || "report failed" });
+  }
+}
+
+// 0~100 정수로 보정. 파싱 불가하면 50.
+function clampProbability(value) {
+  const n = Math.round(Number(value));
+  if (Number.isNaN(n)) return 50;
+  return Math.max(0, Math.min(100, n));
+}
+
+// 모델 응답에서 JSON 객체를 추출해 파싱한다.
+function parseJsonObject(text) {
+  if (!text) return null;
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) return null;
+  try {
+    const parsed = JSON.parse(text.slice(start, end + 1));
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+// 마크다운을 코드펜스(```)로 감싸 보낸 경우 펜스를 제거한다.
+function stripCodeFence(text) {
+  if (!text) return "";
+  return text.replace(/^```[a-zA-Z]*\n?/, "").replace(/\n?```\s*$/, "").trim();
 }
 
 // 모든 텍스트 작업(대화·말투 보정·이야기·소비자)에 쓰는 모델.

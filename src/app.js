@@ -129,12 +129,23 @@ const characters = [
       endpoint: "/api/consumer"
     };
 
+    const persuadeConfig = {
+      endpoint: "/api/persuade"
+    };
+
+    const reportConfig = {
+      endpoint: "/api/persuade-report"
+    };
+
     const state = {
       route: "home",
       characterId: characters[0].id,
       personaId: personas[0].id,
       messages: [],
-      characterImages: {} // characterId -> 생성된 이미지 data URL
+      characterImages: {}, // characterId -> 생성된 이미지 data URL
+      product: "", // 마지막으로 시뮬레이션한 제품 정보
+      consumerResults: [], // 마지막 소비자 시뮬레이션 결과
+      persuade: null // 진행 중인 1:1 설득 세션
     };
 
     const $ = (selector) => document.querySelector(selector);
@@ -146,7 +157,8 @@ const characters = [
       personaSelect: "사용자 페르소나 선택",
       chat: "캐릭터 대화",
       story: "이야기 창작하기",
-      consumer: "가상 소비자"
+      consumer: "가상 소비자",
+      persuade: "소비자 설득"
     };
     const previousRoutes = {
       characterStory: "home",
@@ -154,7 +166,8 @@ const characters = [
       personaSelect: "characterSelect",
       chat: "personaSelect",
       story: "characterStory",
-      consumer: "home"
+      consumer: "home",
+      persuade: "consumer"
     };
 
     function routeTo(route) {
@@ -167,6 +180,7 @@ const characters = [
       $("#backNav").classList.toggle("visible", route !== "home");
       $("#backNav").dataset.route = previousRoutes[route] || "home";
       if (route === "chat") renderChat();
+      if (route === "persuade") renderPersuade();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -434,6 +448,142 @@ const characters = [
       }
     }
 
+    // 소비자 카드 클릭 → 1:1 설득 세션 시작
+    async function startPersuade(index) {
+      const result = state.consumerResults[index];
+      if (!result) return;
+      const base = consumers.find((item) => item.name === result.name) || {};
+      state.persuade = {
+        consumer: {
+          name: result.name,
+          need: base.need || "",
+          mood: base.mood || "",
+          reaction: result.reaction || "",
+          guide: result.guide || ""
+        },
+        messages: [],
+        probability: null,
+        lastDelta: null,
+        report: ""
+      };
+
+      // 보고서 영역 초기화
+      $("#reportPanel").hidden = true;
+      $("#reportPanel").textContent = "";
+      $("#downloadReport").hidden = true;
+
+      routeTo("persuade");
+
+      // 첫 진입: 빈 대화로 호출해 소비자의 첫인상 + 시작 확률을 받는다.
+      const opener = { type: "ai", text: "", pending: true, pendingLabel: "소비자가 첫 반응을 준비 중…" };
+      state.persuade.messages.push(opener);
+      renderPersuade();
+
+      const { reply, probability } = await fetchPersuade();
+      opener.text = reply || "(반응이 없습니다.)";
+      opener.pending = false;
+      updateProbability(probability);
+      renderPersuade();
+    }
+
+    async function fetchPersuade() {
+      const session = state.persuade;
+      const history = session.messages
+        .filter((message) => !message.pending && message.text)
+        .map((message) => ({ role: message.type === "user" ? "user" : "assistant", content: message.text }));
+      try {
+        const response = await fetch(persuadeConfig.endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ product: state.product, consumer: session.consumer, messages: history })
+        });
+        if (!response.ok) return { reply: "(응답을 받지 못했습니다.)", probability: session.probability };
+        const data = await response.json();
+        return {
+          reply: data.reply || "",
+          probability: typeof data.probability === "number" ? data.probability : session.probability
+        };
+      } catch {
+        return { reply: "(오류가 발생했습니다.)", probability: session.probability };
+      }
+    }
+
+    function updateProbability(value) {
+      const session = state.persuade;
+      const next = Math.max(0, Math.min(100, Math.round(Number(value))));
+      if (Number.isNaN(next)) return;
+      session.lastDelta = session.probability == null ? null : next - session.probability;
+      session.probability = next;
+    }
+
+    function renderPersuade() {
+      const session = state.persuade;
+      if (!session) return;
+      $("#persuadeTitle").textContent = `${session.consumer.name} 설득`;
+      $("#persuadeMeta").textContent = [session.consumer.need && `니즈: ${session.consumer.need}`, session.consumer.mood && `태도: ${session.consumer.mood}`]
+        .filter(Boolean).join(" · ");
+      $("#persuadeLog").innerHTML = session.messages.map((message) => {
+        const classes = ["bubble"];
+        if (message.type === "user") classes.push("user");
+        if (message.pending) classes.push("pending");
+        const text = message.pending ? (message.pendingLabel || "…") : message.text;
+        return `<div class="${classes.join(" ")}">${escapeHtml(text)}</div>`;
+      }).join("");
+      $("#persuadeLog").scrollTop = $("#persuadeLog").scrollHeight;
+      renderProbability();
+    }
+
+    function renderProbability() {
+      const session = state.persuade;
+      const prob = session.probability;
+      const value = $("#probValue");
+      const fill = $("#probFill");
+      const delta = $("#probDelta");
+      if (prob == null) {
+        value.textContent = "--%";
+        fill.style.width = "0%";
+        delta.textContent = "";
+        return;
+      }
+      const color = prob >= 70 ? "var(--accent)" : prob >= 40 ? "#c9962f" : "var(--accent-2)";
+      value.textContent = `${prob}%`;
+      value.style.color = color;
+      fill.style.width = `${prob}%`;
+      fill.style.background = color;
+      if (session.lastDelta == null) {
+        delta.textContent = "";
+      } else if (session.lastDelta > 0) {
+        delta.textContent = `▲ +${session.lastDelta}`;
+        delta.style.color = "var(--accent)";
+      } else if (session.lastDelta < 0) {
+        delta.textContent = `▼ ${session.lastDelta}`;
+        delta.style.color = "var(--accent-2)";
+      } else {
+        delta.textContent = "변화 없음";
+        delta.style.color = "var(--muted)";
+      }
+    }
+
+    async function fetchPersuadeReport() {
+      const session = state.persuade;
+      const history = session.messages
+        .filter((message) => !message.pending && message.text)
+        .map((message) => ({ role: message.type === "user" ? "user" : "assistant", content: message.text }));
+      const response = await fetch(reportConfig.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product: state.product,
+          consumer: session.consumer,
+          messages: history,
+          probability: session.probability
+        })
+      });
+      if (!response.ok) throw new Error("report request failed");
+      const data = await response.json();
+      return data.report || "";
+    }
+
     document.addEventListener("click", (event) => {
       const routeButton = event.target.closest("[data-route]");
       if (routeButton) routeTo(routeButton.dataset.route);
@@ -448,6 +598,11 @@ const characters = [
       if (personaButton) {
         state.personaId = personaButton.dataset.persona;
         renderCards();
+      }
+
+      const persuadeCard = event.target.closest("[data-persuade-index]");
+      if (persuadeCard) {
+        startPersuade(Number(persuadeCard.dataset.persuadeIndex));
       }
     });
 
@@ -543,19 +698,80 @@ const characters = [
       $("#consumerResults").innerHTML = `<article class="result-card"><h3>시뮬레이션 중…</h3><p class="muted">소비자 유형별 반응을 생성하고 있습니다.</p></article>`;
       try {
         const results = await fetchConsumerReactions(product);
-        $("#consumerResults").innerHTML = results.map((item) => `
-          <article class="consumer-message">
+        state.product = product;
+        state.consumerResults = results;
+        $("#consumerResults").innerHTML = results.map((item, index) => `
+          <article class="consumer-message clickable" data-persuade-index="${index}">
             <div class="avatar">${escapeHtml((item.name || "?").slice(0, 1))}</div>
             <div>
               <h3>${escapeHtml(item.name || "")}</h3>
               <p>${escapeHtml(item.reaction || "")}</p>
               <div class="guide"><strong>설득 가이드</strong><br>${escapeHtml(item.guide || "")}</div>
+              <p class="persuade-cta">이 소비자 1:1로 설득하기 →</p>
             </div>
           </article>
         `).join("");
       } finally {
         button.disabled = false;
       }
+    });
+
+    $("#persuadeForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const input = $("#persuadeInput").value.trim();
+      if (!input || !state.persuade) return;
+      $("#persuadeInput").value = "";
+
+      state.persuade.messages.push({ type: "user", text: input });
+      const pending = { type: "ai", text: "", pending: true, pendingLabel: "소비자가 고민 중…" };
+      state.persuade.messages.push(pending);
+      renderPersuade();
+
+      const { reply, probability } = await fetchPersuade();
+      pending.text = reply || "(반응이 없습니다.)";
+      pending.pending = false;
+      updateProbability(probability);
+      renderPersuade();
+    });
+
+    $("#finishPersuade").addEventListener("click", async () => {
+      const session = state.persuade;
+      if (!session) return;
+      const hasConversation = session.messages.some((message) => message.type === "user" && !message.pending);
+      $("#reportPanel").hidden = false;
+      if (!hasConversation) {
+        $("#reportPanel").textContent = "먼저 소비자와 대화를 나눈 뒤 완료해 주세요.";
+        return;
+      }
+      const button = $("#finishPersuade");
+      button.disabled = true;
+      $("#downloadReport").hidden = true;
+      $("#reportPanel").textContent = "대화를 분석해 보고서를 작성 중…";
+      try {
+        const report = await fetchPersuadeReport();
+        session.report = report;
+        $("#reportPanel").textContent = report || "보고서를 생성하지 못했습니다.";
+        if (report) $("#downloadReport").hidden = false;
+      } catch {
+        $("#reportPanel").textContent = "보고서 생성에 실패했습니다. 다시 시도해 주세요.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    $("#downloadReport").addEventListener("click", () => {
+      const session = state.persuade;
+      if (!session || !session.report) return;
+      const safeName = session.consumer.name.replace(/[\\/:*?"<>|]/g, "_");
+      const blob = new Blob([session.report], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `설득보고서_${safeName}.md`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
     });
 
     renderCards();
