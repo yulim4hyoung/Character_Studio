@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Character Studio</title>
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+  <div class="app" data-theme="light">
+    <header>
+      <div class="topbar">
+        <div class="brand" id="brandTitle"><div class="mark">AI</div><span>Character Studio</span></div>
+        <button id="backNav" class="back-nav" type="button">← 이전 화면으로 돌아가기</button>
+        <span id="sectionTitle" class="section-title"></span>
+        <button id="themeButton" type="button" aria-label="테마 전환">◐</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="home" class="screen active">
+        <div class="intro">
+          <div>
+            <h1>AI Character Studio</h1>
+            <p class="lead">사전 설정된 캐릭터와 소비자 페르소나를 선택해 대화, 이미지 장면 구성, 이야기 이어쓰기, 가상 소비자 반응을 한 곳에서 실험하는 프로토타입입니다.</p>
+          </div>
+          <div class="mode-list">
+            <button class="mode-card" type="button" data-route="characterStory">
+              <strong>캐릭터 & 이야기</strong>
+              <span>캐릭터와 대화하거나, 현재까지 쓴 이야기를 바탕으로 다음 줄거리를 제안받습니다.</span>
+            </button>
+            <button class="mode-card" type="button" data-route="consumer">
+              <strong>가상 소비자</strong>
+              <span>제품이나 서비스를 입력하면 6개 소비자 유형의 반응과 설득 가이드를 봅니다.</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="characterStory" class="screen fit-screen">
+        <div class="choice-grid">
+          <button class="item-card choice-card" type="button" data-route="characterSelect">
+            <div class="media-frame">
+              <div class="choice-photo" style=""></div>
+            </div>
+            <div class="choice-info">
+              <h3>캐릭터와 대화하기</h3>
+              <p class="muted">캐릭터를 선택하고 사용자 페르소나를 정한 뒤 대화를 시작합니다.</p>
+              <p>대화 내용을 기반으로 이미지 장면 프롬프트도 구성할 수 있습니다.</p>
+            </div>
+          </button>
+          <button class="item-card choice-card" type="button" data-route="story">
+            <div class="media-frame">
+              <div class="choice-photo" style=""></div>
+            </div>
+            <div class="choice-info">
+              <h3>이야기 창작하기</h3>
+              <p class="muted">현재까지 쓴 이야기를 입력하면 다음 줄거리 후보 3가지를 카드로 제안합니다.</p>
+              <p>장면 전환, 갈등 강화, 관계 변화 중심으로 이어갈 방향을 탐색합니다.</p>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <section id="characterSelect" class="screen">
+        <div class="toolbar">
+          <h2>캐릭터 선택</h2>
+        </div>
+        <div id="characterGrid" class="grid"></div>
+        <div class="actions">
+          <button id="toPersona" class="primary" type="button">다음</button>
+        </div>
+      </section>
+
+      <section id="personaSelect" class="screen">
+        <div class="toolbar">
+          <h2>사용자 페르소나 선택</h2>
+        </div>
+        <div id="personaGrid" class="grid persona-grid"></div>
+        <div class="actions">
+          <button id="startChat" class="primary" type="button">대화 시작</button>
+        </div>
+      </section>
+
+      <section id="chat" class="screen">
+        <div class="toolbar">
+          <h2 id="chatTitle">캐릭터 대화</h2>
+          <div class="actions" style="margin:0">
+            <button type="button" data-route="personaSelect">설정</button>
+            <button type="button" data-route="home">홈</button>
+          </div>
+        </div>
+        <div class="workspace">
+          <section class="panel">
+            <div class="panel-head"><h3>대화</h3><span id="personaBadge" class="muted"></span></div>
+            <div id="chatLog" class="chat"></div>
+            <form id="chatForm" class="composer">
+              <textarea id="chatInput" rows="2" placeholder="캐릭터에게 말을 걸어보세요."></textarea>
+              <button class="primary" type="submit">보내기</button>
+            </form>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h3>이미지 장면</h3>
+            </div>
+            <div class="image-stage">
+              <div id="portrait" class="portrait" data-caption="생성 버튼을 누르면 캐릭터와 대화 장면을 이미지로 만듭니다.">?</div>
+            </div>
+            <div class="image-actions">
+              <button id="generateImage" type="button">생성</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="story" class="screen">
+        <div class="toolbar">
+          <h2>이야기 창작하기</h2>
+          <button type="button" data-route="characterStory">←</button>
+        </div>
+        <div class="story-layout">
+          <form id="storyForm" class="form-panel">
+            <label for="storyInput"><strong>현재까지의 이야기</strong></label>
+            <textarea id="storyInput" rows="14" placeholder="주인공, 갈등, 분위기가 드러나도록 입력하세요."></textarea>
+            <div class="actions">
+              <button class="primary" type="submit">줄거리 제안</button>
+            </div>
+          </form>
+          <div id="storyResults" class="result-list"></div>
+        </div>
+      </section>
+
+      <section id="consumer" class="screen">
+        <div class="toolbar">
+          <h2>가상 소비자 반응</h2>
+          <button type="button" data-route="home">←</button>
+        </div>
+        <div class="consumer-layout">
+          <form id="consumerForm" class="form-panel">
+            <label for="productInput"><strong>제품/서비스 정보</strong></label>
+            <textarea id="productInput" rows="12" placeholder="제품명, 가격, 핵심 기능, 타깃, 구매 상황을 입력하세요."></textarea>
+            <div class="actions">
+              <button class="primary" type="submit">반응 시뮬레이션</button>
+            </div>
+          </form>
+          <div id="consumerResults" class="consumer-chat"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>
