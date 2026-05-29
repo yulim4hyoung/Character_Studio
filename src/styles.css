@@ -549,6 +549,14 @@
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: var(--radius);
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
     }
 
     .result-list {

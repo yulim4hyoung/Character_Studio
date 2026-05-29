@@ -137,8 +137,26 @@
         </div>
         <div class="consumer-layout">
           <form id="consumerForm" class="form-panel">
-            <label for="productInput"><strong>제품/서비스 정보</strong></label>
-            <textarea id="productInput" rows="12" placeholder="제품명, 가격, 핵심 기능, 타깃, 구매 상황을 입력하세요."></textarea>
+            <div class="field">
+              <label for="productName"><strong>제품명</strong></label>
+              <input id="productName" type="text" placeholder="예: 7일 가는 무선 이어폰">
+            </div>
+            <div class="field">
+              <label for="productPrice"><strong>가격</strong></label>
+              <input id="productPrice" type="text" placeholder="예: 12만원">
+            </div>
+            <div class="field">
+              <label for="productFeatures"><strong>핵심 기능</strong></label>
+              <textarea id="productFeatures" rows="3" placeholder="예: 노이즈캔슬링, 1회 충전 7일 사용, 2년 무상 AS"></textarea>
+            </div>
+            <div class="field">
+              <label for="productTarget"><strong>타깃</strong></label>
+              <input id="productTarget" type="text" placeholder="예: 출퇴근·운동을 즐기는 20~30대 직장인">
+            </div>
+            <div class="field">
+              <label for="productSituation"><strong>구매 상황</strong></label>
+              <textarea id="productSituation" rows="2" placeholder="예: 기존 이어폰 배터리가 빨리 닳아 교체를 고민 중"></textarea>
+            </div>
             <div class="actions">
               <button class="primary" type="submit">반응 시뮬레이션</button>
             </div>

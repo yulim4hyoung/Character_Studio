@@ -397,6 +397,22 @@ const characters = [
       }
     }
 
+    // 5개 입력란을 모아 "항목: 값" 형태의 제품 정보 문자열로 만든다. (빈 칸은 제외)
+    function collectProductInfo() {
+      const fields = [
+        ["제품명", $("#productName").value],
+        ["가격", $("#productPrice").value],
+        ["핵심 기능", $("#productFeatures").value],
+        ["타깃", $("#productTarget").value],
+        ["구매 상황", $("#productSituation").value]
+      ];
+      return fields
+        .map(([label, value]) => [label, value.trim()])
+        .filter(([, value]) => value)
+        .map(([label, value]) => `${label}: ${value}`)
+        .join("\n");
+    }
+
     async function fetchConsumerReactions(product) {
       const payloadConsumers = consumers.map((consumer) => ({
         name: consumer.name,
@@ -517,11 +533,16 @@ const characters = [
 
     $("#consumerForm").addEventListener("submit", async (event) => {
       event.preventDefault();
+      const product = collectProductInfo();
+      if (!product) {
+        $("#productName").focus();
+        return;
+      }
       const button = $("#consumerForm button[type='submit']");
       button.disabled = true;
       $("#consumerResults").innerHTML = `<article class="result-card"><h3>시뮬레이션 중…</h3><p class="muted">소비자 유형별 반응을 생성하고 있습니다.</p></article>`;
       try {
-        const results = await fetchConsumerReactions($("#productInput").value);
+        const results = await fetchConsumerReactions(product);
         $("#consumerResults").innerHTML = results.map((item) => `
           <article class="consumer-message">
             <div class="avatar">${escapeHtml((item.name || "?").slice(0, 1))}</div>
