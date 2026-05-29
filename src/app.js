@@ -121,6 +121,14 @@ const characters = [
       endpoint: "/api/chat"
     };
 
+    const storyConfig = {
+      endpoint: "/api/story"
+    };
+
+    const consumerConfig = {
+      endpoint: "/api/consumer"
+    };
+
     const state = {
       route: "home",
       characterId: characters[0].id,
@@ -373,6 +381,43 @@ const characters = [
       }));
     }
 
+    async function fetchStorySuggestions(text) {
+      try {
+        const response = await fetch(storyConfig.endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: text.trim() || "주인공이 낯선 인물과 마주친다" })
+        });
+        if (!response.ok) return suggestStory(text);
+        const data = await response.json();
+        return Array.isArray(data.suggestions) && data.suggestions.length ? data.suggestions : suggestStory(text);
+      } catch {
+        // API 실패 시 기존 목업 제안으로 대체한다.
+        return suggestStory(text);
+      }
+    }
+
+    async function fetchConsumerReactions(product) {
+      const payloadConsumers = consumers.map((consumer) => ({
+        name: consumer.name,
+        need: consumer.need,
+        mood: consumer.mood
+      }));
+      try {
+        const response = await fetch(consumerConfig.endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ product: product.trim() || "새로운 제품", consumers: payloadConsumers })
+        });
+        if (!response.ok) return simulateConsumers(product);
+        const data = await response.json();
+        return Array.isArray(data.results) && data.results.length ? data.results : simulateConsumers(product);
+      } catch {
+        // API 실패 시 기존 목업 반응으로 대체한다.
+        return simulateConsumers(product);
+      }
+    }
+
     document.addEventListener("click", (event) => {
       const routeButton = event.target.closest("[data-route]");
       if (routeButton) routeTo(routeButton.dataset.route);
@@ -452,30 +497,44 @@ const characters = [
       }
     });
 
-    $("#storyForm").addEventListener("submit", (event) => {
+    $("#storyForm").addEventListener("submit", async (event) => {
       event.preventDefault();
-      const suggestions = suggestStory($("#storyInput").value);
-      $("#storyResults").innerHTML = suggestions.map((item, index) => `
-        <article class="result-card">
-          <h3>${index + 1}. ${item.title}</h3>
-          <p>${item.content}</p>
-        </article>
-      `).join("");
+      const button = $("#storyForm button[type='submit']");
+      button.disabled = true;
+      $("#storyResults").innerHTML = `<article class="result-card"><h3>생성 중…</h3><p class="muted">다음 줄거리 후보를 만들고 있습니다.</p></article>`;
+      try {
+        const suggestions = await fetchStorySuggestions($("#storyInput").value);
+        $("#storyResults").innerHTML = suggestions.map((item, index) => `
+          <article class="result-card">
+            <h3>${index + 1}. ${escapeHtml(item.title || "")}</h3>
+            <p>${escapeHtml(item.content || "")}</p>
+          </article>
+        `).join("");
+      } finally {
+        button.disabled = false;
+      }
     });
 
-    $("#consumerForm").addEventListener("submit", (event) => {
+    $("#consumerForm").addEventListener("submit", async (event) => {
       event.preventDefault();
-      const results = simulateConsumers($("#productInput").value);
-      $("#consumerResults").innerHTML = results.map((item) => `
-        <article class="consumer-message">
-          <div class="avatar">${item.name.slice(0, 1)}</div>
-          <div>
-            <h3>${item.name}</h3>
-            <p>${item.reaction}</p>
-            <div class="guide"><strong>설득 가이드</strong><br>${item.guide}</div>
-          </div>
-        </article>
-      `).join("");
+      const button = $("#consumerForm button[type='submit']");
+      button.disabled = true;
+      $("#consumerResults").innerHTML = `<article class="result-card"><h3>시뮬레이션 중…</h3><p class="muted">소비자 유형별 반응을 생성하고 있습니다.</p></article>`;
+      try {
+        const results = await fetchConsumerReactions($("#productInput").value);
+        $("#consumerResults").innerHTML = results.map((item) => `
+          <article class="consumer-message">
+            <div class="avatar">${escapeHtml((item.name || "?").slice(0, 1))}</div>
+            <div>
+              <h3>${escapeHtml(item.name || "")}</h3>
+              <p>${escapeHtml(item.reaction || "")}</p>
+              <div class="guide"><strong>설득 가이드</strong><br>${escapeHtml(item.guide || "")}</div>
+            </div>
+          </article>
+        `).join("");
+      } finally {
+        button.disabled = false;
+      }
     });
 
     renderCards();

@@ -38,7 +38,7 @@ Windows에서는 위 1~2단계로 `.env`를 준비한 뒤 `run.bat`을 더블클
 | 변수 | 설명 | 예시 |
 |------|------|------|
 | `OPENROUTER_API_KEY` | OpenRouter API 키 (필수) | `sk-or-v1-...` |
-| `OPENROUTER_TEXT_MODEL` | 대화·말투 보정에 쓰는 텍스트 모델 | `google/gemini-2.5-flash` |
+| `OPENROUTER_TEXT_MODEL` | 텍스트 작업(대화·말투 보정·이야기·소비자)에 쓰는 모델 | `google/gemini-2.5-flash` |
 | `OPENROUTER_IMAGE_MODEL` | 이미지 생성에 쓰는 모델 | `google/gemini-3.1-flash-image-preview` |
 | `PORT` | 서버 포트 (기본 5173) | `5173` |
 
@@ -51,8 +51,8 @@ API 키는 `.env`에만 두고 프론트엔드 파일에는 절대 넣지 않습
 | 캐릭터 대화 | 실제 API | `/api/chat` — 캐릭터의 성격·말투를 반영해 응답 |
 | 사용자 페르소나 말투 보정 | 실제 API | `/api/rewrite-tone` — 입력 메시지를 선택한 페르소나 말투로 변환 |
 | 이미지 생성 | 실제 API | `/api/generate-image` — 캐릭터·장면 프롬프트로 이미지를 생성해 초상화에 표시 |
-| 이야기 창작 | 목업 | 정해진 제안 텍스트를 반환 |
-| 가상 소비자 반응 | 목업 | 정해진 반응 텍스트를 반환 |
+| 이야기 창작 | 실제 API | `/api/story` — 지금까지의 이야기를 이어갈 줄거리 후보 3개를 생성 |
+| 가상 소비자 반응 | 실제 API | `/api/consumer` — 소비자 유형별로 제품에 대한 반응·설득 가이드를 생성 |
 
 ## API 엔드포인트
 
@@ -61,3 +61,5 @@ API 키는 `.env`에만 두고 프론트엔드 파일에는 절대 넣지 않습
 - `POST /api/chat` — 캐릭터 대화 응답 생성
 - `POST /api/rewrite-tone` — 사용자 입력의 페르소나 말투 보정
 - `POST /api/generate-image` — 이미지 생성
+- `POST /api/story` — 줄거리 후보 제안
+- `POST /api/consumer` — 소비자 유형별 반응 시뮬레이션

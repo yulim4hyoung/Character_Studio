@@ -40,6 +40,16 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "POST" && url.pathname === "/api/story") {
+      await handleStory(req, res);
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/consumer") {
+      await handleConsumer(req, res);
+      return;
+    }
+
     if (req.method !== "GET" && req.method !== "HEAD") {
       sendJson(res, 405, { error: "Method not allowed" });
       return;
@@ -223,7 +233,7 @@ async function handleRewriteTone(req, res) {
       "X-Title": "Character Studio"
     },
     body: JSON.stringify({
-      model: process.env.OPENROUTER_TEXT_MODEL || "google/gemini-2.5-flash",
+      model: textModel(),
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: text }
@@ -314,7 +324,7 @@ async function handleChat(req, res) {
       "X-Title": "Character Studio"
     },
     body: JSON.stringify({
-      model: process.env.OPENROUTER_TEXT_MODEL || "google/gemini-2.5-flash",
+      model: textModel(),
       messages,
       temperature: 0.7,
       max_tokens: 500
@@ -337,6 +347,153 @@ async function handleChat(req, res) {
     : "";
 
   sendJson(res, 200, { text: reply });
+}
+
+async function handleStory(req, res) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    sendJson(res, 500, { error: "OPENROUTER_API_KEY is not configured" });
+    return;
+  }
+
+  const body = await readJson(req);
+  const text = String(body.text || "").trim();
+  if (!text) {
+    sendJson(res, 400, { error: "text is required" });
+    return;
+  }
+
+  const systemPrompt = [
+    "당신은 웹소설·시나리오 작가를 돕는 줄거리 제안 도구입니다.",
+    "사용자가 지금까지의 이야기를 주면, 그 이야기의 마지막 상황에서 곧바로 이어지는 줄거리 후보 3개를 제안하세요.",
+    "반드시 입력에 등장한 인물·장소·상황만 사용하세요. 입력에 나오지 않은 새 인물(예: 친구, 가족), 새 소재(예: 일기장, 계약서, 초능력)나 새 사건을 지어내지 마세요.",
+    "입력의 핵심 요소(예: 특정 인물이 가진 단서나 비밀)를 반드시 전개의 중심에 두세요.",
+    "각 후보는 서로 다른 방향(예: 갈등 심화, 반전, 관계 변화)이어야 합니다.",
+    "반드시 아래 JSON 배열 형식으로만 출력하세요. 코드펜스나 설명 문장은 절대 넣지 마세요.",
+    '[{"title":"짧은 제목","content":"2~3문장의 구체적인 전개"}]',
+    "title은 12자 내외, content는 한국어 2~3문장으로 작성하세요."
+  ].join("\n");
+
+  try {
+    const reply = await requestChatCompletion(apiKey, textModel(), [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: text }
+    ], 0.6, 800);
+    const suggestions = parseJsonArray(reply);
+    if (!suggestions) {
+      sendJson(res, 502, { error: "모델 응답을 파싱하지 못했습니다." });
+      return;
+    }
+    sendJson(res, 200, { suggestions });
+  } catch (error) {
+    sendJson(res, 502, { error: error.message || "story generation failed" });
+  }
+}
+
+async function handleConsumer(req, res) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    sendJson(res, 500, { error: "OPENROUTER_API_KEY is not configured" });
+    return;
+  }
+
+  const body = await readJson(req);
+  const product = String(body.product || "").trim();
+  const consumers = Array.isArray(body.consumers) ? body.consumers : [];
+  if (!product) {
+    sendJson(res, 400, { error: "product is required" });
+    return;
+  }
+  if (consumers.length === 0) {
+    sendJson(res, 400, { error: "consumers are required" });
+    return;
+  }
+
+  const systemPrompt = [
+    "당신은 마케팅·소비자 조사 전문가입니다.",
+    "주어진 제품/서비스 정보에 대해, 주어진 소비자 유형 각각이 어떻게 반응할지 시뮬레이션하세요.",
+    "제품 정보에 실제로 명시된 내용만 근거로 삼으세요. 명시되지 않은 사실(가격, 보증, 기능 등)을 지어내거나 다른 값으로 바꾸지 마세요.",
+    "반드시 아래 JSON 배열 형식으로만 출력하세요. 코드펜스나 설명 문장은 절대 넣지 마세요.",
+    '[{"name":"유형명","reaction":"이 유형이 제품에 보일 구체적 반응 2~3문장","guide":"이 유형을 설득하기 위한 실행 가능한 조언 1~2문장"}]',
+    "name 필드에는 아래 목록에 적힌 유형 이름을 글자 그대로 복사하세요(다른 표현으로 바꾸지 마세요). 모든 유형에 대해 빠짐없이 출력하세요. 한국어로 작성하세요."
+  ].join("\n");
+
+  const userContent = [
+    `제품/서비스 정보:\n${product}`,
+    "",
+    `소비자 유형 목록(JSON):\n${JSON.stringify(consumers)}`
+  ].join("\n");
+
+  try {
+    const reply = await requestChatCompletion(apiKey, textModel(), [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userContent }
+    ], 0.3, 1200);
+    const results = parseJsonArray(reply);
+    if (!results) {
+      sendJson(res, 502, { error: "모델 응답을 파싱하지 못했습니다." });
+      return;
+    }
+    // 모델이 유형 이름을 바꿔도, 순서가 같으면 원래 이름을 결정적으로 복원한다.
+    if (results.length === consumers.length) {
+      results.forEach((item, index) => { item.name = consumers[index].name; });
+    }
+    sendJson(res, 200, { results });
+  } catch (error) {
+    sendJson(res, 502, { error: error.message || "consumer simulation failed" });
+  }
+}
+
+// 모든 텍스트 작업(대화·말투 보정·이야기·소비자)에 쓰는 모델.
+function textModel() {
+  return process.env.OPENROUTER_TEXT_MODEL || "google/gemini-2.5-flash";
+}
+
+// OpenRouter 채팅 모델을 호출해 응답 텍스트를 반환한다.
+async function requestChatCompletion(apiKey, model, messages, temperature, maxTokens) {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "http://localhost",
+      "X-Title": "Character Studio"
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature,
+      max_tokens: maxTokens
+    })
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    const detail = data && data.error && data.error.message ? data.error.message : "OpenRouter request failed";
+    throw new Error(detail);
+  }
+
+  return data
+    && data.choices
+    && data.choices[0]
+    && data.choices[0].message
+    && typeof data.choices[0].message.content === "string"
+    ? data.choices[0].message.content.trim()
+    : "";
+}
+
+// 모델 응답에서 JSON 배열을 추출해 파싱한다. 코드펜스/잡텍스트가 섞여도 처리한다.
+function parseJsonArray(text) {
+  if (!text) return null;
+  const start = text.indexOf("[");
+  const end = text.lastIndexOf("]");
+  if (start === -1 || end === -1 || end <= start) return null;
+  try {
+    const parsed = JSON.parse(text.slice(start, end + 1));
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 function readJson(req) {
