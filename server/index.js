@@ -495,9 +495,9 @@ async function handlePersuade(req, res) {
     "[규칙]",
     "1. 반드시 위 '말투'를 그대로 살려 해당 소비자답게 현실적으로 반응하세요. 쉽게 넘어가지 말고, 니즈가 충족되면 마음을 여세요.",
     "2. 구매 판단은 위 '구매 결정 흐름'의 단계를 따라 진행하세요. 아직 확인하지 못한 단계가 남아 있으면 그 부분을 짚으며 신중하게 반응하세요.",
-    "3. 판매자의 말에 위 '설득 핵심 키워드'에 해당하는 내용이 등장하면 마음이 뚜렷하게 움직여 구매 의향(probability)을 의미 있게 올리세요. 반대로 핵심 키워드가 전혀 언급되지 않거나 니즈·태도와 어긋나면 구매 의향을 낮게 유지하거나 내리세요.",
+    "3. 구매 의향(probability)은 대화 전체 흐름을 기반으로 판단하세요. 판매자가 설득 핵심 키워드를 언급하거나 니즈를 정확히 짚으면 의미 있게 올리세요(+10~20). 판매자가 중립적이거나 일반적인 말을 하면 현재 확률을 유지하거나 소폭만 변화(-5~+5)시키세요. 판매자가 명백히 니즈와 어긋나거나 소비자를 무시하는 말을 할 때만 의미 있게 내리세요(-10~20). 매 턴 확률이 크게 오르내리지 않도록 안정적으로 유지하세요.",
     "4. 매 턴, 지금 시점의 구매 의향을 0~100 정수로 평가하세요.",
-    "5. 아직 대화가 없으면(첫 진입) 제품에 대한 솔직한 첫인상을 위 말투로 1~2문장 말하고 시작 구매 의향을 추정하세요.",
+    "5. 아직 대화가 없으면(첫 진입) 제품에 대한 솔직한 첫인상을 위 말투로 1~2문장 말하세요. 시작 구매 의향은 40~60 사이에서 시작하되, 제품이 소비자의 핵심 니즈와 즉각적으로 잘 맞는다면 최대 70까지 가능합니다.",
     "6. reply는 소비자로서의 발화 1~3문장입니다. 메타 발언이나 설명은 넣지 마세요.",
     "7. 반드시 아래 JSON 객체로만 출력하세요. 코드펜스나 다른 텍스트는 절대 넣지 마세요.",
     '{"reply":"소비자 발화","probability":정수}'
@@ -514,10 +514,17 @@ async function handlePersuade(req, res) {
   }
 
   try {
-    const out = await requestChatCompletion(apiKey, textModel(), messages, 0.7, 500);
-    const obj = parseJsonObject(out);
+    let obj = null;
+    let out = "";
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      out = await requestChatCompletion(apiKey, textModel(), messages, 0.3, 1000);
+      obj = parseJsonObject(out);
+      if (obj) break;
+      console.warn(`[persuade] 파싱 실패 (시도 ${attempt}/3) - 원본:`, JSON.stringify(out));
+    }
     if (!obj) {
-      sendJson(res, 502, { error: "모델 응답을 파싱하지 못했습니다." });
+      console.error("[persuade] 3회 모두 파싱 실패 - 마지막 원본:", JSON.stringify(out));
+      sendJson(res, 502, { error: "모델 응답을 파싱하지 못했습니다.", raw: out });
       return;
     }
     sendJson(res, 200, {
@@ -598,11 +605,30 @@ function clampProbability(value) {
 // 모델 응답에서 JSON 객체를 추출해 파싱한다.
 function parseJsonObject(text) {
   if (!text) return null;
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1 || end <= start) return null;
+  // ```json ... ``` 형태의 코드펜스를 먼저 제거한다.
+  const cleaned = stripCodeFence(text);
+  // 1차: 정리된 텍스트 전체를 그대로 JSON으로 파싱 시도
   try {
-    const parsed = JSON.parse(text.slice(start, end + 1));
+    const parsed = JSON.parse(cleaned);
+    if (parsed && typeof parsed === "object") return parsed;
+  } catch {
+    // 무시하고 중괄호 추출 방식으로 폴백
+  }
+  // 2차: 중괄호 depth 카운팅으로 정확한 JSON 객체 범위 추출
+  const startIdx = cleaned.indexOf("{");
+  if (startIdx === -1) return null;
+  let depth = 0;
+  let endIdx = -1;
+  for (let i = startIdx; i < cleaned.length; i++) {
+    if (cleaned[i] === "{") depth++;
+    else if (cleaned[i] === "}") {
+      depth--;
+      if (depth === 0) { endIdx = i; break; }
+    }
+  }
+  if (endIdx === -1) return null;
+  try {
+    const parsed = JSON.parse(cleaned.slice(startIdx, endIdx + 1));
     return parsed && typeof parsed === "object" ? parsed : null;
   } catch {
     return null;
