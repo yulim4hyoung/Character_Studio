@@ -102,6 +102,7 @@ const characters = [
       {
         id: "c1",
         name: "최은지",
+        avatar: "/consumers/consumer_choeeunji.png",
         type: "트렌드 공유형",
         age: 22,
         gender: "여성",
@@ -117,6 +118,7 @@ const characters = [
       {
         id: "c2",
         name: "박지훈",
+        avatar: "/consumers/consumer_parkjihun.png",
         type: "가성비 분석형",
         age: 26,
         gender: "남성",
@@ -132,6 +134,7 @@ const characters = [
       {
         id: "c3",
         name: "이수진",
+        avatar: "/consumers/consumer_leesoojin.png",
         type: "효율 추구형",
         age: 34,
         gender: "여성",
@@ -147,6 +150,7 @@ const characters = [
       {
         id: "c4",
         name: "최민정",
+        avatar: "/consumers/consumer_choiminjung.png",
         type: "안전 검증형",
         age: 37,
         gender: "여성",
@@ -162,6 +166,7 @@ const characters = [
       {
         id: "c5",
         name: "정성호",
+        avatar: "/consumers/consumer_jungseongho.png",
         type: "가치 판단형",
         age: 45,
         gender: "남성",
@@ -177,6 +182,7 @@ const characters = [
       {
         id: "c6",
         name: "이영숙",
+        avatar: "/consumers/consumer_leeyoungsuk.png",
         type: "신뢰 의존형",
         age: 56,
         gender: "여성",
@@ -620,6 +626,17 @@ const characters = [
       $("#persuadeTitle").textContent = `${session.consumer.name} 설득`;
       $("#persuadeMeta").textContent = [session.consumer.need && `니즈: ${session.consumer.need}`, session.consumer.mood && `태도: ${session.consumer.mood}`]
         .filter(Boolean).join(" · ");
+
+      // 소비자 이미지/정보: consumers 배열에서 이름으로 찾아 avatar를 가져온다.
+      const profile = consumers.find((c) => c.name === session.consumer.name) || {};
+      const avatar = profile.avatar || session.consumer.avatar || "";
+      const infoLine = [profile.type, profile.age ? `${profile.age}세` : "", profile.gender]
+        .filter(Boolean).join(" · ");
+      $("#persuadeConsumer").innerHTML = `
+        ${avatar ? `<img class="persuade-consumer-img" src="${escapeHtml(avatar)}" alt="${escapeHtml(session.consumer.name)}">` : ""}
+        <div class="persuade-consumer-name">${escapeHtml(session.consumer.name)}</div>
+        ${infoLine ? `<div class="persuade-consumer-info muted">${escapeHtml(infoLine)}</div>` : ""}
+      `;
       $("#persuadeLog").innerHTML = session.messages.map((message) => {
         const classes = ["bubble"];
         if (message.type === "user") classes.push("user");
@@ -805,7 +822,11 @@ const characters = [
             .join(" · ");
           return `
           <article class="consumer-message clickable" data-persuade-index="${index}">
-            <div class="avatar">${escapeHtml((item.name || "?").slice(0, 1))}</div>
+            <div class="avatar" style="${base.avatar ? "background-image:none" : ""}">
+              ${base.avatar
+                ? `<img src="${escapeHtml(base.avatar)}" alt="${escapeHtml(item.name || "")}">`
+                : escapeHtml((item.name || "?").slice(0, 1))}
+            </div>
             <div>
               <div style="display:flex; align-items:baseline; gap:12px;">
                 <h3>${escapeHtml(item.name || "")}</h3>
