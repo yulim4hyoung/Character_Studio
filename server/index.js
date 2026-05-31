@@ -535,12 +535,18 @@ async function handleConsumer(req, res) {
   }
 
   const systemPrompt = [
-    "당신은 마케팅·소비자 조사 전문가입니다.",
-    "주어진 제품/서비스 정보에 대해, 주어진 소비자 유형 각각이 어떻게 반응할지 시뮬레이션하세요.",
+    "당신은 소비자 반응 시뮬레이터입니다. 당신의 역할은 분석가가 아니라, 각 소비자 본인이 되어 그 사람의 입으로 직접 말하는 것입니다.",
+    "각 페르소나에는 name(이름), type(유형), age(나이), background(배경), need(핵심 니즈), mood(기본 무드), tone(말투), purchaseFlow(구매 결정 흐름), positiveReaction(이 소비자가 마음에 들 때 하는 말투 예시), negativeReaction(이 소비자가 시큰둥할 때 하는 말투 예시), persuasionKeywords(설득 핵심 키워드) 정보가 주어집니다.",
+    "positiveReaction과 negativeReaction은 그 소비자의 실제 말투를 보여주는 참고 예시입니다. reaction을 쓸 때 이 예시들의 어조·어미·구어체 느낌을 그대로 흉내 내세요. 단, 예시 문장을 그대로 복사하지는 말고 이번 제품에 맞는 새로운 반응을 만드세요.",
+    "reaction은 반드시 해당 소비자가 그 자리에서 직접 내뱉는 1인칭 구어체 2~3문장이어야 합니다. (예: \"오 이거 좀 끌리는데?\", \"음... 저한테 필요할까요?\" 같은 실제 말투)",
+    "reaction에는 그 소비자가 자신의 purchaseFlow(구매 결정 흐름)에 따라 무엇을 먼저 따지고 무엇을 확인하려 하는지가 자연스럽게 드러나야 합니다. (가격을 먼저 따지는 사람이면 가격 얘기부터, 후기를 먼저 보는 사람이면 후기 얘기부터 꺼내는 식)",
+    "절대 금지: '제품명: ... 가격: ... 핵심 기능: ...' 처럼 제품 정보를 문장 앞에 그대로 붙이거나 요약하지 마세요.",
+    "절대 금지: '이 유형은 ~합니다', '이 소비자는 ~할 것입니다' 같은 제3자 시점의 분석문. reaction은 분석이 아니라 그 사람이 직접 하는 말입니다.",
+    "guide에는 해당 소비자의 need와 persuasionKeywords를 공략하기 위한 실행 가능한 조언을 담으세요. (guide는 마케터에게 주는 조언이므로 3인칭이어도 됩니다.)",
     "제품 정보에 실제로 명시된 내용만 근거로 삼으세요. 명시되지 않은 사실(가격, 보증, 기능 등)을 지어내거나 다른 값으로 바꾸지 마세요.",
     "반드시 아래 JSON 배열 형식으로만 출력하세요. 코드펜스나 설명 문장은 절대 넣지 마세요.",
-    '[{"name":"유형명","reaction":"이 유형이 제품에 보일 구체적 반응 2~3문장","guide":"이 유형을 설득하기 위한 실행 가능한 조언 1~2문장"}]',
-    "name 필드에는 아래 목록에 적힌 유형 이름을 글자 그대로 복사하세요(다른 표현으로 바꾸지 마세요). 모든 유형에 대해 빠짐없이 출력하세요. 한국어로 작성하세요."
+    '[{"name":"이름","reaction":"그 소비자가 직접 말하는 1인칭 구어체 반응 2~3문장","guide":"이 소비자를 설득하기 위한 실행 가능한 조언 1~2문장"}]',
+    "name 필드에는 아래 목록에 적힌 이름을 글자 그대로 복사하세요(다른 표현으로 바꾸지 마세요). 모든 소비자에 대해 빠짐없이 출력하세요. 한국어로 작성하세요."
   ].join("\n");
 
   const userContent = [
@@ -587,21 +593,28 @@ async function handlePersuade(req, res) {
   }
 
   const systemPrompt = [
-    `당신은 "${consumer.name}" 유형의 소비자를 1인칭으로 연기합니다. 판매자(사용자)가 아래 제품을 두고 당신을 설득합니다.`,
+    `당신은 "${consumer.name}"라는 소비자를 1인칭으로 연기합니다. 판매자(사용자)가 아래 제품을 두고 당신을 설득합니다.`,
+    consumer.type ? `당신의 소비 성향 유형: ${consumer.type}` : "",
+    consumer.age ? `당신의 나이: ${consumer.age}세` : "",
+    consumer.background ? `당신의 배경: ${consumer.background}` : "",
     consumer.need ? `당신의 핵심 니즈: ${consumer.need}` : "",
     consumer.mood ? `당신의 기본 태도: ${consumer.mood}` : "",
+    consumer.tone ? `당신의 말투(반드시 이 말투를 그대로 유지): ${consumer.tone}` : "",
+    consumer.purchaseFlow ? `당신의 구매 결정 흐름: ${consumer.purchaseFlow}` : "",
+    consumer.persuasionKeywords ? `당신의 마음을 움직이는 설득 핵심 키워드: ${consumer.persuasionKeywords}` : "",
     consumer.reaction ? `이 제품에 대한 당신의 첫 반응: ${consumer.reaction}` : "",
     "",
     "[제품/서비스 정보]",
     product,
     "",
     "[규칙]",
-    "1. 해당 유형의 소비자답게 현실적으로 반응하세요. 쉽게 넘어가지 말고, 니즈가 충족되면 마음을 여세요.",
-    "2. 설득이 설득력 있고 니즈에 맞으면 구매 의향이 오르고, 부실하거나 니즈와 어긋나면 내려갑니다.",
-    "3. 매 턴, 지금 시점의 구매 의향을 0~100 정수로 평가하세요.",
-    "4. 아직 대화가 없으면(첫 진입) 제품에 대한 솔직한 첫인상을 1~2문장으로 말하고 시작 구매 의향을 추정하세요.",
-    "5. reply는 소비자로서의 발화 1~3문장입니다. 메타 발언이나 설명은 넣지 마세요.",
-    "6. 반드시 아래 JSON 객체로만 출력하세요. 코드펜스나 다른 텍스트는 절대 넣지 마세요.",
+    "1. 반드시 위 '말투'를 그대로 살려 해당 소비자답게 현실적으로 반응하세요. 쉽게 넘어가지 말고, 니즈가 충족되면 마음을 여세요.",
+    "2. 구매 판단은 위 '구매 결정 흐름'의 단계를 따라 진행하세요. 아직 확인하지 못한 단계가 남아 있으면 그 부분을 짚으며 신중하게 반응하세요.",
+    "3. 구매 의향(probability)은 대화 전체 흐름을 기반으로 판단하세요. 판매자가 설득 핵심 키워드를 언급하거나 니즈를 정확히 짚으면 의미 있게 올리세요(+10~20). 판매자가 중립적이거나 일반적인 말을 하면 현재 확률을 유지하거나 소폭만 변화(-5~+5)시키세요. 판매자가 명백히 니즈와 어긋나거나 소비자를 무시하는 말을 할 때만 의미 있게 내리세요(-10~20). 매 턴 확률이 크게 오르내리지 않도록 안정적으로 유지하세요.",
+    "4. 매 턴, 지금 시점의 구매 의향을 0~100 정수로 평가하세요.",
+    "5. 아직 대화가 없으면(첫 진입) 제품에 대한 솔직한 첫인상을 위 말투로 1~2문장 말하세요. 시작 구매 의향은 40~60 사이에서 시작하되, 제품이 소비자의 핵심 니즈와 즉각적으로 잘 맞는다면 최대 70까지 가능합니다.",
+    "6. reply는 소비자로서의 발화 1~3문장입니다. 메타 발언이나 설명은 넣지 마세요.",
+    "7. 반드시 아래 JSON 객체로만 출력하세요. 코드펜스나 다른 텍스트는 절대 넣지 마세요.",
     '{"reply":"소비자 발화","probability":정수}'
   ].filter(Boolean).join("\n");
 
@@ -616,10 +629,17 @@ async function handlePersuade(req, res) {
   }
 
   try {
-    const out = await requestChatCompletion(apiKey, textModel(), messages, 0.7, 500);
-    const obj = parseJsonObject(out);
+    let obj = null;
+    let out = "";
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      out = await requestChatCompletion(apiKey, textModel(), messages, 0.3, 1000);
+      obj = parseJsonObject(out);
+      if (obj) break;
+      console.warn(`[persuade] 파싱 실패 (시도 ${attempt}/3) - 원본:`, JSON.stringify(out));
+    }
     if (!obj) {
-      sendJson(res, 502, { error: "모델 응답을 파싱하지 못했습니다." });
+      console.error("[persuade] 3회 모두 파싱 실패 - 마지막 원본:", JSON.stringify(out));
+      sendJson(res, 502, { error: "모델 응답을 파싱하지 못했습니다.", raw: out });
       return;
     }
     sendJson(res, 200, {
@@ -700,11 +720,30 @@ function clampProbability(value) {
 // 모델 응답에서 JSON 객체를 추출해 파싱한다.
 function parseJsonObject(text) {
   if (!text) return null;
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1 || end <= start) return null;
+  // ```json ... ``` 형태의 코드펜스를 먼저 제거한다.
+  const cleaned = stripCodeFence(text);
+  // 1차: 정리된 텍스트 전체를 그대로 JSON으로 파싱 시도
   try {
-    const parsed = JSON.parse(text.slice(start, end + 1));
+    const parsed = JSON.parse(cleaned);
+    if (parsed && typeof parsed === "object") return parsed;
+  } catch {
+    // 무시하고 중괄호 추출 방식으로 폴백
+  }
+  // 2차: 중괄호 depth 카운팅으로 정확한 JSON 객체 범위 추출
+  const startIdx = cleaned.indexOf("{");
+  if (startIdx === -1) return null;
+  let depth = 0;
+  let endIdx = -1;
+  for (let i = startIdx; i < cleaned.length; i++) {
+    if (cleaned[i] === "{") depth++;
+    else if (cleaned[i] === "}") {
+      depth--;
+      if (depth === 0) { endIdx = i; break; }
+    }
+  }
+  if (endIdx === -1) return null;
+  try {
+    const parsed = JSON.parse(cleaned.slice(startIdx, endIdx + 1));
     return parsed && typeof parsed === "object" ? parsed : null;
   } catch {
     return null;

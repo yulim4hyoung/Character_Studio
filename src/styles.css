@@ -660,6 +660,20 @@
       background: var(--surface);
     }
 
+    .consumer-message .avatar {
+      width: 48px;
+      height: 48px;
+      flex: none;
+      overflow: hidden;
+    }
+
+    .consumer-message .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
     .guide {
       margin-top: 12px;
       padding: 12px;
@@ -702,8 +716,36 @@
       padding: 20px 8px;
     }
 
+    /* 설득 화면 오른쪽 패널: 첫 행을 고정 54px → auto로 풀어 소비자 이미지가 잘리지 않게 한다.
+       왼쪽 채팅 패널(:first-child)은 그대로 두어 레이아웃 유지. */
+    #persuade .workspace > .panel:last-child {
+      grid-template-rows: auto minmax(0, 1fr) 70px;
+    }
+
+    .persuade-consumer {
+      display: grid;
+      gap: 6px;
+      padding: 16px 16px 0;
+    }
+
+    .persuade-consumer-img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      display: block;
+    }
+
+    .persuade-consumer-name {
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .persuade-consumer-info {
+      font-size: 13px;
+    }
+
     .prob-value {
-      font-size: 64px;
+      font-size: 40px;
       font-weight: 900;
       line-height: 1;
       color: var(--accent);

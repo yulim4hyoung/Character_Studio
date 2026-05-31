@@ -141,12 +141,102 @@ Do not include speech bubbles, text, fonts, words, typography, callouts, flat sh
     ];
 
     const consumers = [
-      { id: "c1", name: "가성비 탐색형", need: "가격 대비 효용과 비교 근거를 중시", mood: "신중" },
-      { id: "c2", name: "트렌드 민감형", need: "새로움, 화제성, 공유 가능성을 중시", mood: "흥미" },
-      { id: "c3", name: "안전 보수형", need: "검증, 후기, 환불 정책을 중시", mood: "불안" },
-      { id: "c4", name: "프리미엄 지향형", need: "품질, 브랜드 경험, 시간 절약을 중시", mood: "기대" },
-      { id: "c5", name: "실용 반복형", need: "일상에서 계속 쓸 수 있는지를 중시", mood: "현실적" },
-      { id: "c6", name: "선물 구매형", need: "받는 사람의 반응과 포장, 메시지를 중시", mood: "고민" }
+      {
+        id: "c1",
+        name: "최은지",
+        avatar: "/consumers/consumer_choeeunji.png",
+        type: "트렌드 공유형",
+        age: 22,
+        gender: "여성",
+        background: "서울 자취 대학생, 미디어/경영 전공, SNS 중심 생활, 하루 스마트폰 7~9시간",
+        need: "SNS 화제성, 트렌디함, 친구와 공유 가능성",
+        mood: "충동적, 흥미, 비교 심리 강함",
+        tone: "헐, 대박, 진짜? 등 감탄사 자주 사용. 물음표 연달아 씀. 짧게 끊어 말함",
+        positiveReaction: "헐 이거 어디서 봤는데! 친구들한테 바로 공유해야지~",
+        negativeReaction: "별로 안 끌려요. 이거 SNS에 올리기엔 좀 애매하지 않아요?",
+        purchaseFlow: "SNS 발견 → 리뷰 확인 → 친구 의견 → 구매",
+        persuasionKeywords: "요즘 다들 쓰는 거, SNS에 올리기 딱 좋음, 친구한테 공유 가능"
+      },
+      {
+        id: "c2",
+        name: "박지훈",
+        avatar: "/consumers/consumer_parkjihun.png",
+        type: "가성비 분석형",
+        age: 26,
+        gender: "남성",
+        background: "취업 준비생, 경제적 압박 큰 상황, 자격증 공부 중",
+        need: "가격 대비 효용, 실용성, 검증된 후기",
+        mood: "신중, 분석적, 현실적",
+        tone: "건조하고 짧음. ~네요, ~겠죠 어미 자주 사용. 감정 표현 거의 없음",
+        positiveReaction: "이 가격이면 괜찮은 것 같네요. 실제 후기 좀 더 찾아봐야겠지만요.",
+        negativeReaction: "지금 당장 필요하진 않을 것 같습니다. 가격도 부담스럽고요.",
+        purchaseFlow: "가격 확인 → 실용성 검토 → 리뷰 확인 → 구매",
+        persuasionKeywords: "무료라서 손해 볼 게 없음, 실제 사용자 후기, 취준에 실질적 도움"
+      },
+      {
+        id: "c3",
+        name: "이수진",
+        avatar: "/consumers/consumer_leesoojin.png",
+        type: "효율 추구형",
+        age: 34,
+        gender: "여성",
+        background: "IT 회사 기획자, 평일 회사 중심, 주말 운동/자기계발",
+        need: "시간 절약, 생산성, 브랜드 신뢰",
+        mood: "차분, 완벽주의, 결과 지향",
+        tone: "간결하고 핵심만 말함. ~요, ~죠 어미. 불필요한 수식어 없음",
+        positiveReaction: "실제 사용 사례를 보니 납득이 되네요.",
+        negativeReaction: "저한테 필요한 기능인지 모르겠네요.",
+        purchaseFlow: "시간 절약 효과 확인 → 생산성 검토 → 브랜드 신뢰 확인 → 구매",
+        persuasionKeywords: "시간 절약, 업무 효율 향상, 검증된 브랜드"
+      },
+      {
+        id: "c4",
+        name: "최민정",
+        avatar: "/consumers/consumer_choiminjung.png",
+        type: "안전 검증형",
+        age: 37,
+        gender: "여성",
+        background: "워킹맘, 육아+직장 병행, 맘카페·커뮤니티 의존도 높음",
+        need: "안전성, 검증된 후기, 편리성",
+        mood: "걱정 많음, 꼼꼼함, 커뮤니티 신뢰",
+        tone: "걱정 많고 질문이 많음. ~는 아니죠?, 혹시 ~한 경우도 있나요? 패턴 자주 사용",
+        positiveReaction: "주변 엄마들도 쓰고 있어서 믿음이 가요.",
+        negativeReaction: "혹시 부작용 사례는 없나요? 좀 더 알아봐야 할 것 같아요.",
+        purchaseFlow: "안전성 확인 → 커뮤니티 후기 검색 → 지인 의견 → 구매",
+        persuasionKeywords: "맘카페에서도 검증됨, 주변 엄마들도 씀, 아이에게 안전"
+      },
+      {
+        id: "c5",
+        name: "정성호",
+        avatar: "/consumers/consumer_jungseongho.png",
+        type: "가치 판단형",
+        age: 45,
+        gender: "남성",
+        background: "중견기업 부장, 회사 중심 생활, 투자·경제 관심 많음",
+        need: "가치 대비 효용, 브랜드 신뢰, 시간 아깝지 않은 결과",
+        mood: "직설적, 권위 의식, 보수적",
+        tone: "짧고 직설적. 그래서 뭐가 좋은 건데? 처럼 결론 먼저 요구. 군더더기 없음",
+        positiveReaction: "비슷한 거 써봤는데, 이게 좀 더 낫네.",
+        negativeReaction: "이게 필요한지 모르겠어. 그냥 애들 유행 아닌가?",
+        purchaseFlow: "결론/핵심 효용 확인 → 가격 대비 가치 판단 → 브랜드 검토 → 구매",
+        persuasionKeywords: "시간 낭비 없음, 확실한 효용, 검증된 결과"
+      },
+      {
+        id: "c6",
+        name: "이영숙",
+        avatar: "/consumers/consumer_leeyoungsuk.png",
+        type: "신뢰 의존형",
+        age: 56,
+        gender: "여성",
+        background: "자영업, 주요 앱 카카오톡·네이버, 디지털 사용 제한적",
+        need: "신뢰, 지인 추천, 안정성",
+        mood: "조심스러움, 변화 거부감, 관계 의존적",
+        tone: "정중하고 느린 말투. ~네요, ~가요? 어미. 반복 질문 및 확인 많음",
+        positiveReaction: "지인이 써봤는데 좋다고 해서요, 저도 한번 해볼까 해요.",
+        negativeReaction: "저는 이런 거 잘 몰라서요. 좀 어렵네요.",
+        purchaseFlow: "지인 추천 확인 → 신뢰 여부 판단 → 반복 질문으로 확인 → 구매",
+        persuasionKeywords: "지인 추천, 쉽고 간단함, 많은 사람이 쓰는 검증된 서비스"
+      }
     ];
 
     const imageGenerationConfig = {
@@ -508,8 +598,16 @@ Do not include speech bubbles, text, fonts, words, typography, callouts, flat sh
     async function fetchConsumerReactions(product) {
       const payloadConsumers = consumers.map((consumer) => ({
         name: consumer.name,
+        type: consumer.type,
+        age: consumer.age,
+        background: consumer.background,
         need: consumer.need,
-        mood: consumer.mood
+        mood: consumer.mood,
+        tone: consumer.tone,
+        purchaseFlow: consumer.purchaseFlow,
+        positiveReaction: consumer.positiveReaction,
+        negativeReaction: consumer.negativeReaction,
+        persuasionKeywords: consumer.persuasionKeywords
       }));
       try {
         const response = await fetch(consumerConfig.endpoint, {
@@ -534,8 +632,14 @@ Do not include speech bubbles, text, fonts, words, typography, callouts, flat sh
       state.persuade = {
         consumer: {
           name: result.name,
+          type: base.type || "",
+          age: base.age || "",
+          background: base.background || "",
           need: base.need || "",
           mood: base.mood || "",
+          tone: base.tone || "",
+          purchaseFlow: base.purchaseFlow || "",
+          persuasionKeywords: base.persuasionKeywords || "",
           reaction: result.reaction || "",
           guide: result.guide || ""
         },
@@ -600,6 +704,17 @@ Do not include speech bubbles, text, fonts, words, typography, callouts, flat sh
       $("#persuadeTitle").textContent = `${session.consumer.name} 설득`;
       $("#persuadeMeta").textContent = [session.consumer.need && `니즈: ${session.consumer.need}`, session.consumer.mood && `태도: ${session.consumer.mood}`]
         .filter(Boolean).join(" · ");
+
+      // 소비자 이미지/정보: consumers 배열에서 이름으로 찾아 avatar를 가져온다.
+      const profile = consumers.find((c) => c.name === session.consumer.name) || {};
+      const avatar = profile.avatar || session.consumer.avatar || "";
+      const infoLine = [profile.type, profile.age ? `${profile.age}세` : "", profile.gender]
+        .filter(Boolean).join(" · ");
+      $("#persuadeConsumer").innerHTML = `
+        ${avatar ? `<img class="persuade-consumer-img" src="${escapeHtml(avatar)}" alt="${escapeHtml(session.consumer.name)}">` : ""}
+        <div class="persuade-consumer-name">${escapeHtml(session.consumer.name)}</div>
+        ${infoLine ? `<div class="persuade-consumer-info muted">${escapeHtml(infoLine)}</div>` : ""}
+      `;
       $("#persuadeLog").innerHTML = session.messages.map((message) => {
         const classes = ["bubble"];
         if (message.type === "user") classes.push("user");
@@ -819,17 +934,30 @@ Do not include speech bubbles, text, fonts, words, typography, callouts, flat sh
         const results = await fetchConsumerReactions(product);
         state.product = product;
         state.consumerResults = results;
-        $("#consumerResults").innerHTML = results.map((item, index) => `
+        $("#consumerResults").innerHTML = results.map((item, index) => {
+          const base = consumers.find((c) => c.name === item.name) || {};
+          const meta = [base.type, base.age ? `${base.age}세` : "", base.gender]
+            .filter(Boolean)
+            .join(" · ");
+          return `
           <article class="consumer-message clickable" data-persuade-index="${index}">
-            <div class="avatar">${escapeHtml((item.name || "?").slice(0, 1))}</div>
+            <div class="avatar" style="${base.avatar ? "background-image:none" : ""}">
+              ${base.avatar
+                ? `<img src="${escapeHtml(base.avatar)}" alt="${escapeHtml(item.name || "")}">`
+                : escapeHtml((item.name || "?").slice(0, 1))}
+            </div>
             <div>
-              <h3>${escapeHtml(item.name || "")}</h3>
+              <div style="display:flex; align-items:baseline; gap:12px;">
+                <h3>${escapeHtml(item.name || "")}</h3>
+                ${meta ? `<span class="muted" style="font-size:0.85em;">${escapeHtml(meta)}</span>` : ""}
+              </div>
               <p>${escapeHtml(item.reaction || "")}</p>
               <div class="guide"><strong>설득 가이드</strong><br>${escapeHtml(item.guide || "")}</div>
               <p class="persuade-cta">이 소비자 1:1로 설득하기 →</p>
             </div>
           </article>
-        `).join("");
+        `;
+        }).join("");
       } finally {
         button.disabled = false;
       }
