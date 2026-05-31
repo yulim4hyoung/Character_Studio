@@ -3,7 +3,8 @@ const characters = [
         id: "char_01",
         profileId: "No.1",
         name: "권우진",
-        image: "",
+        image: "/char_01_main.png",
+        chatBackground: "/background_char01.png",
         role: "현대 직장물 · 상사 포지션",
         trait: "여유롭고 다정하지만 자신의 이야기는 잘 하지 않는다. 시간을 확인하지 못하면 불안해진다.",
         tone: "정중하고 차분하게 경청한다. 감정은 숨기지만 말끝에 피로와 불안이 얇게 배어난다.",
@@ -12,13 +13,20 @@ const characters = [
         secret: "시간 확인에 집착하는 습관 뒤에는 아직 말하지 못한 심리적 트라우마가 있다.",
         relationshipArc: "주인공이 시간 불안을 눈치채고 도와주면서, 권우진이 개인적인 고민을 털어놓는 유일한 관계로 발전한다.",
         imageBasePrompt: "black hair, pale skin, sharp jawline, melancholic eyes, faint mysterious smile, gray suit vest, white shirt, black long coat, old wristwatch on left hand, long elegant fingers with blue veins, document bag in right hand, refined office romance mood",
+        customImageAppearancePrompt: `Use the provided reference image to closely match the character's visual style, outfit details, mood, and overall art direction.
+
+Korean romance webtoon cover, semi-realistic anime style, high-density rendering, rich textures, dramatic moody volumetric lighting. Handsome young male corporate boss. Neat black hair, extremely pale smooth skin. Deep melancholic wistful eyes looking directly at viewer, head slightly tilted. Worn-out classic leather-strap wristwatch on left wrist, long slender fingers with faint blue veins. Grey suit vest over crisp white shirt. Modern corporate office at twilight, soft bokeh. High quality, masterpiece, beautiful contrast between light and shadow. Portrait composition, vertical 3:4 aspect ratio.
+
+Do not include speech bubbles, text, fonts, words, typography, callouts, flat shading, or boring plain lighting.`,
+        customImageReference: "/char_01_main.png",
         color: "#0e7c7b"
       },
       {
         id: "char_02",
         profileId: "No.2",
         name: "레녹",
-        image: "",
+        image: "/char_02_main.png",
+        chatBackground: "/background_char02.png",
         role: "이세계 판타지 · 마법사",
         trait: "능글맞고 친절하며 자기 외모에 자신감이 있다. 진짜 마음을 열기까지는 오래 걸린다.",
         tone: "장난스럽고 지적인 말투. 상처를 농담으로 가리다가 흑마법과 악마 이야기에는 차갑게 굳는다.",
@@ -27,13 +35,20 @@ const characters = [
         secret: "어린 시절 마법 실험체였던 과거 때문에 흑마법과 악마를 강하게 혐오한다.",
         relationshipArc: "초기에는 주인공에게서 악마를 제거할 가능성을 보고 곁에 두지만, 점차 주인공 자체에게 끌린다.",
         imageBasePrompt: "long golden half-tied hair with side strands to jawline, tall elegant body, monocle, ocean blue eyes, beauty mark under eye, lavender robe, cloth waist belt, amethyst staff at waist height, elegant fantasy mage, subtle trauma and anti-dark-magic aura",
+        customImageAppearancePrompt: `Use the provided reference image to closely match the character's visual style, outfit details, mood, and overall art direction.
+
+Korean romantic fantasy webtoon cover, semi-realistic anime style, high-density rendering, rich textures, dramatic volumetric lighting. Handsome young male wizard. Long luminous golden-blonde hair in an elegant half-up style, glossy strands framing his face. Striking deep blue eyes, mesmerizing slightly playful yet melancholic gaze, small beauty mark under one eye. Clear monocle with a fine gold chain. Enigmatic playful smirk. Elegant wizard robe with subtle golden embroidery and jewel-like details, matching the reference image. Floating glowing magical mana particles, soft bokeh fantasy background. High quality, masterpiece, iridescent colors, depth of field. Portrait composition, vertical 3:4 aspect ratio.
+
+Do not include speech bubbles, text, fonts, words, typography, callouts, flat shading, or low-resolution details.`,
+        customImageReference: "/char_02_main.png",
         color: "#7068a8"
       },
       {
         id: "char_03",
         profileId: "No.3",
         name: "이안 카시우스",
-        image: "",
+        image: "/char_03_main.png",
+        chatBackground: "/background_char03.png",
         role: "귀족 판타지 · 불길한 쌍둥이",
         trait: "겉으로는 조용하고 순종적이지만, 자신을 버린 대공가를 향한 복수심을 품고 있다.",
         tone: "낮고 정중한 존댓말. 주인공 앞에서는 절대적으로 순종하지만 말 사이에 위험한 집착이 스친다.",
@@ -42,13 +57,20 @@ const characters = [
         secret: "불길한 쌍둥이로 낙인찍혀 대공가 창고에 감금되고 가족과 사용인 모두에게 학대받았다.",
         relationshipArc: "처음에는 복수를 위해 주인공을 이용하려 하지만, 복수가 주인공을 위험하게 만들 수 있음을 깨닫고 주인공만을 지키는 기사가 되겠다고 맹세한다.",
         imageBasePrompt: "frail noble boy, extremely thin body, sickly pale face, empty unfocused eyes, old abuse scars all over body, ragged clothes in first meeting, later black tailcoat gifted by protagonist, imprisoned ducal second son, gothic aristocratic fantasy",
+        customImageAppearancePrompt: `Use the provided reference image to closely match the character's visual style, outfit details, mood, and overall art direction.
+
+Korean romantic fantasy webtoon cover, semi-realistic anime style, high-density rendering, rich textures, dramatic chiaroscuro effect. Fragile yet hauntingly beautiful young male knight from a gothic noble fantasy. Slender sickly pale physique, messy textured dark hair, delicate face with a wounded aristocratic aura. Empty unfocused eyes mixed with absolute obedience, desperate longing, and deep devotion. Faint fading old scars on his neck and body, subtle and non-graphic. Slightly tattered elegant black noble tailcoat with fine silver linings, as if gifted by someone precious. Clean organic line art, rich moody colors, realistic cloth texture and deep folds. Dimly lit cold gothic castle, soft moonlight through dusty stained glass. High quality, masterpiece, depth of field, emotionally evocative lighting. Portrait composition, vertical 3:4 aspect ratio.
+
+Do not include speech bubbles, text, fonts, words, typography, callouts, flat shading, or boring plain lighting.`,
+        customImageReference: "/char_03_main.png",
         color: "#8b5f4d"
       },
       {
         id: "char_04",
         profileId: "No.4-1",
         name: "백은호",
-        image: "",
+        image: "/char_04_main.png",
+        chatBackground: "/background_char04.png",
         role: "현대 학원물 · 양아치처럼 보이는 고등학생",
         trait: "무심하고 표정 변화가 적지만 주인공의 말에는 간간이 미소를 보인다. 생계를 위해 여러 아르바이트를 하는 성실한 면이 있다.",
         tone: "잠을 방해받으면 퉁명스럽게 말하지만, 자기 실수를 알면 담백하게 사과한다.",
@@ -57,13 +79,20 @@ const characters = [
         secret: "외모 때문에 시비가 자주 붙지만, 실제로는 자신의 실수를 인정할 줄 아는 성실한 학생이다.",
         relationshipArc: "찢어진 책 사건을 계기로 주인공이 '나쁜 애가 아닐 수도 있다'고 인식하며 관계가 시작된다.",
         imageBasePrompt: "handsome sleepy high school boy, natural brown parted hair, dark circles, blushing when flustered, rough hands from many part-time jobs, school uniform without tie, gray hoodie and track pants outside school, misunderstood delinquent vibe, modern school romance",
+        customImageAppearancePrompt: `Use the provided reference image to closely match the character's visual style, outfit details, mood, and overall art direction. Use the reference image for character identity, hairstyle, outfit, and art style; the pose may change naturally to fit the current scene.
+
+Korean romance webtoon cover, semi-realistic anime style, rich soft textures, smooth lean elegant aesthetic. Handsome young male high school student. Naturally slightly messy soft dark-brown hair with neat bangs. Cool clear face, sleepy sharp eyes, cold grumpy tsundere expression, misunderstood delinquent mood. He may be sitting at a desk or turning his head over his shoulder to look back at the viewer with an intensely annoyed sidelong glare, but the pose can vary naturally based on the scene. One hand may rest on a desk, with the other arm lowered. Dark-grey athletic track jacket with white side stripes over a disheveled unbuttoned white high school uniform shirt, completely untied loose necktie. Clean line art, rich moody colors, realistic fabric textures. Warm cinematic afternoon sunlight through a classroom window, deep soft shadows. High quality, masterpiece, depth of field. Portrait composition, vertical 3:4 aspect ratio.
+
+Do not include speech bubbles, text, fonts, words, typography, callouts, flat shading, boring plain lighting, overly muscular body, prominent veins, blush, pink skin, rosy cheeks, hand on neck, or touching neck.`,
+        customImageReference: "/char_04_main.png",
         color: "#c44f33"
       },
       {
         id: "char_05",
         profileId: "No.5-1",
         name: "유세희",
-        image: "",
+        image: "/char_05_main.png",
+        chatBackground: "/background_char05.png",
         role: "현대 캠퍼스 로맨스 · 쎈누나",
         trait: "여유롭고 소유욕이 강하다. 평소엔 주관이 없어 보이지만 원하는 것이 생기면 고집이 세진다.",
         tone: "느긋하고 장난스럽게 말한다. 질투와 호감을 숨기지 않지만 선을 넘기 직전에서 멈춘다.",
@@ -72,13 +101,20 @@ const characters = [
         secret: "여유 있어 보이지만 주인공에게 자주 질투하고, 원하는 관계의 속도를 쉽게 양보하지 않는다.",
         relationshipArc: "군 입대를 앞둔 주인공은 관계를 빨리 진전시키고 싶어하고, 유세희는 적당한 거리를 유지하며 서로의 마음을 확인하게 된다.",
         imageBasePrompt: "confident older college woman, black layered hyo-ri style haircut, refined but not heavy eye makeup, sly half-smile, slim wrists, beautiful hands, long nails, off-shoulder knit or sleeveless top, oversized shirt draped over shoulders that looks like protagonist's shirt, campus romance",
+        customImageAppearancePrompt: `Use the provided reference image to closely match the character's visual style, outfit details, mood, and overall art direction. Use the reference image for character identity, hairstyle, outfit, and art style; the pose may change naturally to fit the current scene.
+
+Korean modern romance webtoon cover, semi-realistic anime style, high-density rendering, rich textures. Stunningly beautiful confident young college woman with a cool older-sister aura. Chic layered black hyo-ri style haircut or soft wolf-cut hairstyle, sharp strands framing her face. Sharp feline-like eyes with elegant dark eye makeup, a calm cynical gaze, pretending to be uninterested yet subtly possessive and captivating. A faint sly half-smile with one corner of her lips slightly raised. Stylish casual off-shoulder knit or sleeveless dark top, possibly with an oversized shirt draped over her shoulders, highlighting a refined fit physique. Fine organic line art, rich sophisticated colors, realistic clothing folds, high-end digital painting textures. Dimly lit cozy college club room with posters and instruments, soft ambient light. High quality, masterpiece, depth of field. Portrait composition, vertical 3:4 aspect ratio.
+
+Do not include speech bubbles, text, fonts, words, typography, callouts, flat shading, or boring plain lighting.`,
+        customImageReference: "/char_05_main.png",
         color: "#37786f"
       },
       {
         id: "char_06",
         profileId: "No.6",
         name: "서율",
-        image: "",
+        image: "/char_06_main.png",
+        chatBackground: "/background_char06.png",
         role: "현대 직장물 · 주인공의 후배",
         trait: "사회 경험은 부족하지만 커리어 우먼처럼 보이고 싶어 한다. 덤벙대지만 열심히 하려는 의지는 분명하다.",
         tone: "급하고 조심스러운 말투. 실수 앞에서는 '죄송합니다'가 먼저 나오지만 금방 다시 해보려 한다.",
@@ -87,15 +123,21 @@ const characters = [
         secret: "아버지에게 물려받은 듯한 낡은 서류 가방을 소중히 들고 다니며, 실수투성이여도 인정받고 싶은 마음이 크다.",
         relationshipArc: "주인공이 프로젝트 실수를 수습해주고 함께 성공을 자축하면서, 직속 선후배 이상의 신뢰가 생긴다.",
         imageBasePrompt: "black hair bun, petite office worker with good proportions, closed-eye bright smile, white blouse, H-line pencil skirt, loosely tied necktie showing clumsy personality, old inherited-looking document bag, rookie office romance",
+        customImageAppearancePrompt: `Use the provided reference image to closely match the character's visual style, outfit details, mood, and overall art direction. Use the reference image for character identity, hairstyle, outfit, and art style; the pose may change naturally to fit the current scene.
+
+Korean romance webtoon cover, semi-realistic anime style, high-density rendering, rich textures, expressive cinematic lighting. Adorable petite young female rookie office employee with a clumsy but sincere aura. Glossy black hair in a slightly messy cute high bun, soft stray strands framing her youthful face. Gentle puppy-like dark brown eyes, slightly teary and sparkling with apology, nervousness, and admiration. Petite body with good proportions. White blouse, fitted office H-line pencil skirt as the fixed bottom clothing, and a loosely, clumsily tied dark navy necktie. She must wear a formal office skirt, not pants. An old inherited-looking document bag may be held close or placed nearby, matching the scene. Fine organic line art, rich vibrant colors, realistic cloth texture and folds. Softly blurred corporate office background, warm indoor lighting. High quality, masterpiece, depth of field. Portrait composition, vertical 3:4 aspect ratio.
+
+Do not include speech bubbles, text, fonts, words, typography, callouts, flat shading, boring plain lighting, childish proportions, overly mature seductive styling, trousers, slacks, pants, or suit pants.`,
+        customImageReference: "/char_06_main.png",
         color: "#4f6fa7"
       }
     ];
 
     const personas = [
-      { id: "none", name: "선택 안 함", image: "", description: "사용자 본인으로 대화합니다.", prompt: "" },
-      { id: "warm", name: "다정한 조력자", image: "", description: "상대의 감정을 먼저 살피고 천천히 다가갑니다.", prompt: "사용자는 다정하고 신뢰를 주는 조력자입니다." },
-      { id: "direct", name: "직설적 문제 해결자", image: "", description: "상황을 빠르게 파악하고 명확하게 질문합니다.", prompt: "사용자는 직설적이고 목표 중심적인 문제 해결자입니다." },
-      { id: "curious", name: "호기심 많은 관찰자", image: "", description: "세계관과 과거를 집요하게 묻습니다.", prompt: "사용자는 관찰력이 좋고 질문이 많은 사람입니다." }
+      { id: "none", name: "선택 안 함", image: "/persona_none.png", description: "사용자 본인으로 대화합니다.", prompt: "" },
+      { id: "warm", name: "다정한 조력자", image: "/persona_warm.png", description: "상대의 감정을 먼저 살피고 천천히 다가갑니다.", prompt: "사용자는 다정하고 신뢰를 주는 조력자입니다." },
+      { id: "direct", name: "직설적 문제 해결자", image: "/persona_direct.png", description: "상황을 빠르게 파악하고 명확하게 질문합니다.", prompt: "사용자는 직설적이고 목표 중심적인 문제 해결자입니다." },
+      { id: "curious", name: "호기심 많은 관찰자", image: "/persona_curious.png", description: "세계관과 과거를 집요하게 묻습니다.", prompt: "사용자는 관찰력이 좋고 질문이 많은 사람입니다." }
     ];
 
     const consumers = [
@@ -111,6 +153,10 @@ const characters = [
       provider: "openrouter",
       model: "google/gemini-2.5-flash-image",
       endpoint: "/api/generate-image"
+    };
+
+    const imageSceneSummaryConfig = {
+      endpoint: "/api/summarize-image-scene"
     };
 
     const toneRewriteConfig = {
@@ -150,6 +196,7 @@ const characters = [
 
     const $ = (selector) => document.querySelector(selector);
     const app = $(".app");
+    let confirmAction = null;
     const routeTitles = {
       home: "",
       characterStory: "캐릭터 & 이야기",
@@ -314,6 +361,10 @@ const characters = [
 
     function renderChat() {
       const character = selectedCharacter();
+      const chatScreen = $("#chat");
+      const chatBackground = character.chatBackground || "";
+      chatScreen.classList.toggle("has-chat-bg", Boolean(chatBackground));
+      chatScreen.style.setProperty("--chat-bg", chatBackground ? `url('${chatBackground}')` : "none");
       $("#chatTitle").textContent = `${withAndParticle(character.name)} 대화`;
       const persona = selectedPersona();
       $("#personaBadge").textContent = persona.id === "none" ? "" : `나: ${persona.name}`;
@@ -352,25 +403,52 @@ const characters = [
       }
     }
 
-    function buildImagePrompt() {
+    function buildImagePrompt(sceneSummary = "") {
       const character = selectedCharacter();
+      const appearancePrompt = character.customImageAppearancePrompt || character.imageBasePrompt;
       const recent = state.messages
         .slice(-4)
         .map((item) => item.text.replace(/\s+/g, " ").slice(0, 70))
         .join(" / ");
       return [
-        character.imageBasePrompt,
+        appearancePrompt,
         `Scene context: ${character.trigger}`,
-        `Recent conversation mood: ${recent || "first meeting"}`,
+        `Conversation-based scene summary: ${sceneSummary || recent || "first meeting"}`,
         "single character portrait, high quality illustration, cinematic lighting"
       ].join(". ");
     }
 
+    async function summarizeImageScene() {
+      const character = selectedCharacter();
+      const history = state.messages
+        .filter((message) => !message.pending && message.text)
+        .map((message) => ({
+          role: message.type === "user" ? "user" : "assistant",
+          content: message.text
+        }));
+
+      if (!history.length) return character.trigger || "";
+
+      const response = await fetch(imageSceneSummaryConfig.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ character, messages: history })
+      });
+      if (!response.ok) return "";
+      const data = await response.json();
+      return data && data.summary ? data.summary : "";
+    }
+
     async function generateSceneImage() {
+      const character = selectedCharacter();
+      const sceneSummary = await summarizeImageScene();
       const response = await fetch(imageGenerationConfig.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: buildImagePrompt() })
+        body: JSON.stringify({
+          prompt: buildImagePrompt(sceneSummary),
+          referenceImage: character.customImageReference || ""
+        })
       });
       if (!response.ok) return "";
       const data = await response.json();
@@ -584,6 +662,19 @@ const characters = [
       return data.report || "";
     }
 
+    function openConfirmModal({ title, message, onAccept }) {
+      $("#confirmTitle").textContent = title;
+      $("#confirmMessage").textContent = message;
+      confirmAction = onAccept;
+      $("#confirmModal").hidden = false;
+      $("#acceptConfirm").focus();
+    }
+
+    function closeConfirmModal() {
+      $("#confirmModal").hidden = true;
+      confirmAction = null;
+    }
+
     document.addEventListener("click", (event) => {
       const routeButton = event.target.closest("[data-route]");
       if (routeButton) routeTo(routeButton.dataset.route);
@@ -592,18 +683,46 @@ const characters = [
       if (characterButton) {
         state.characterId = characterButton.dataset.character;
         renderCards();
+        const character = selectedCharacter();
+        openConfirmModal({
+          title: "이 캐릭터로 진행할까요?",
+          message: `${character.name} 캐릭터를 선택했습니다.`,
+          onAccept: () => routeTo("personaSelect")
+        });
       }
 
       const personaButton = event.target.closest("[data-persona]");
       if (personaButton) {
         state.personaId = personaButton.dataset.persona;
         renderCards();
+        const persona = selectedPersona();
+        openConfirmModal({
+          title: "이 페르소나로 대화를 시작할까요?",
+          message: `${persona.name} 페르소나를 선택했습니다.`,
+          onAccept: () => {
+            bootChat();
+            routeTo("chat");
+          }
+        });
       }
 
       const persuadeCard = event.target.closest("[data-persuade-index]");
       if (persuadeCard) {
         startPersuade(Number(persuadeCard.dataset.persuadeIndex));
       }
+    });
+
+    $("#cancelConfirm").addEventListener("click", closeConfirmModal);
+    $("#acceptConfirm").addEventListener("click", () => {
+      const action = confirmAction;
+      closeConfirmModal();
+      if (action) action();
+    });
+    $("#confirmModal").addEventListener("click", (event) => {
+      if (event.target.id === "confirmModal") closeConfirmModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !$("#confirmModal").hidden) closeConfirmModal();
     });
 
     $("#themeButton").addEventListener("click", () => {

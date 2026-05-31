@@ -411,6 +411,44 @@
       min-height: calc(100vh - 160px);
     }
 
+    #chat.has-chat-bg {
+      width: 100vw;
+      margin: -28px calc(50% - 50vw) -40px;
+      padding: 28px 20px 40px;
+      min-height: calc(100vh - 65px);
+      background:
+        linear-gradient(90deg, rgba(10, 16, 18, 0.58), rgba(10, 16, 18, 0.32) 52%, rgba(10, 16, 18, 0.62)),
+        var(--chat-bg);
+      background-size: cover;
+      background-position: center;
+    }
+
+    #chat.has-chat-bg .toolbar,
+    #chat.has-chat-bg .workspace {
+      width: min(1180px, 100%);
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #chat.has-chat-bg .toolbar h2 {
+      color: white;
+      text-shadow: 0 2px 18px rgba(0, 0, 0, 0.42);
+    }
+
+    #chat.has-chat-bg .panel {
+      background: color-mix(in srgb, var(--surface) 90%, transparent);
+      backdrop-filter: blur(12px);
+    }
+
+    #chat.has-chat-bg .chat {
+      background: color-mix(in srgb, var(--surface-2) 86%, transparent);
+    }
+
+    #chat.has-chat-bg .composer,
+    #chat.has-chat-bg .panel-head {
+      background: color-mix(in srgb, var(--surface) 86%, transparent);
+    }
+
     .panel {
       background: var(--surface);
       border: 1px solid var(--line);
@@ -536,6 +574,44 @@
       font-size: 13px;
       line-height: 1.45;
       font-weight: 500;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(10, 16, 18, 0.48);
+      backdrop-filter: blur(8px);
+    }
+
+    .modal[hidden] {
+      display: none;
+    }
+
+    .modal-panel {
+      width: min(420px, 100%);
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 12px;
+    }
+
+    .modal-panel h3,
+    .modal-panel p {
+      margin: 0;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 6px;
     }
 
     .story-layout, .consumer-layout {

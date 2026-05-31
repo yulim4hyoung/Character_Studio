@@ -30,6 +30,11 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "POST" && url.pathname === "/api/summarize-image-scene") {
+      await handleSummarizeImageScene(req, res);
+      return;
+    }
+
     if (req.method === "POST" && url.pathname === "/api/rewrite-tone") {
       await handleRewriteTone(req, res);
       return;
@@ -112,10 +117,24 @@ async function handleGenerateImage(req, res) {
 
   const body = await readJson(req);
   const prompt = String(body.prompt || "").trim();
+  const referenceImage = String(body.referenceImage || "").trim();
 
   if (!prompt) {
     sendJson(res, 400, { error: "prompt is required" });
     return;
+  }
+
+  let content = prompt;
+  if (referenceImage) {
+    try {
+      content = [
+        { type: "text", text: prompt },
+        { type: "image_url", image_url: { url: referenceImageDataUrl(referenceImage) } }
+      ];
+    } catch (error) {
+      sendJson(res, 400, { error: error.message || "invalid reference image" });
+      return;
+    }
   }
 
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -131,7 +150,7 @@ async function handleGenerateImage(req, res) {
       messages: [
         {
           role: "user",
-          content: prompt
+          content
         }
       ],
       modalities: ["image", "text"]
@@ -198,6 +217,79 @@ function stringContent(content) {
     .map((item) => (item && (item.text || item.content)) || "")
     .filter(Boolean)
     .join("\n");
+}
+
+function referenceImageDataUrl(referenceImage) {
+  if (referenceImage.startsWith("data:image/")) return referenceImage;
+  if (/^https?:\/\//i.test(referenceImage)) return referenceImage;
+  if (!referenceImage.startsWith("/")) throw new Error("referenceImage must be a public path");
+
+  const filePath = resolveStaticPath(referenceImage);
+  if (!filePath || !filePath.startsWith(publicDir)) {
+    throw new Error("referenceImage was not found in public assets");
+  }
+
+  const ext = path.extname(filePath).toLowerCase();
+  const mimeType = mimeTypes[ext];
+  if (!mimeType || !mimeType.startsWith("image/")) {
+    throw new Error("referenceImage must be an image file");
+  }
+
+  return `data:${mimeType};base64,${fs.readFileSync(filePath).toString("base64")}`;
+}
+
+async function handleSummarizeImageScene(req, res) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    sendJson(res, 500, { error: "OPENROUTER_API_KEY is not configured" });
+    return;
+  }
+
+  const body = await readJson(req);
+  const character = body.character || {};
+  const history = Array.isArray(body.messages) ? body.messages : [];
+
+  if (!character.name) {
+    sendJson(res, 400, { error: "character is required" });
+    return;
+  }
+
+  const conversation = history
+    .filter((item) => item && !item.pending && item.content)
+    .slice(-10)
+    .map((item) => `${item.role === "user" ? "사용자" : character.name}: ${String(item.content).trim()}`)
+    .join("\n");
+
+  if (!conversation) {
+    sendJson(res, 200, { summary: character.trigger || "first meeting scene" });
+    return;
+  }
+
+  const systemPrompt = [
+    "당신은 대화 내용을 이미지 생성 프롬프트용 장면 요약으로 바꾸는 도구입니다.",
+    "규칙:",
+    "1. 대화에서 드러난 현재 상황, 감정, 행동, 장소 단서를 2~4문장으로 요약하세요.",
+    "2. 입력에 없는 새 인물, 사건, 소품, 장소를 만들지 마세요.",
+    "3. 캐릭터 외모는 쓰지 마세요. 외모 묘사는 별도 프롬프트로 전달됩니다.",
+    "4. 이미지 생성 AI가 바로 이해할 수 있게 구체적인 시각 장면 중심으로 작성하세요.",
+    "5. 설명이나 머리말 없이 장면 요약만 한국어로 출력하세요.",
+    "",
+    "[캐릭터]",
+    `이름: ${character.name}`,
+    character.role ? `장르/역할: ${character.role}` : "",
+    character.trigger ? `기본 시작 상황: ${character.trigger}` : ""
+  ].filter(Boolean).join("\n");
+
+  try {
+    const summary = await requestChatCompletion(apiKey, textModel(), [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: conversation }
+    ], 0.4, 500);
+
+    sendJson(res, 200, { summary: stripCodeFence(summary) || character.trigger || "" });
+  } catch (error) {
+    sendJson(res, 502, { error: error.message || "scene summary failed" });
+  }
 }
 
 async function handleRewriteTone(req, res) {
@@ -375,10 +467,11 @@ async function handleStory(req, res) {
 
   const systemPrompt = [
     "당신은 웹소설·시나리오 작가를 돕는 줄거리 제안 도구입니다.",
-    "사용자가 지금까지의 이야기를 주면, 그 이야기의 마지막 상황에서 곧바로 이어지는 줄거리 후보 3개를 제안하세요.",
-    "반드시 입력에 등장한 인물·장소·상황만 사용하세요. 입력에 나오지 않은 새 인물(예: 친구, 가족), 새 소재(예: 일기장, 계약서, 초능력)나 새 사건을 지어내지 마세요.",
-    "입력의 핵심 요소(예: 특정 인물이 가진 단서나 비밀)를 반드시 전개의 중심에 두세요.",
-    "각 후보는 서로 다른 방향(예: 갈등 심화, 반전, 관계 변화)이어야 합니다.",
+    "사용자가 입력한 이야기를 읽고, 그 흐름과 인물 관계를 자연스럽게 이어받아 다음 줄거리 후보 3개를 제안하세요.",
+    "각 후보는 현재 이야기의 마지막 상황에서 곧바로 이어질 수 있어야 합니다.",
+    "입력에 등장한 인물의 감정, 목표, 갈등, 분위기를 전개의 중심에 두세요.",
+    "필요하다면 다음 전개를 위해 작은 사건이나 선택지를 만들 수 있지만, 기존 이야기와 무관한 새 인물·장소·설정이 갑자기 튀어나오지 않게 하세요.",
+    "각 후보는 서로 다른 방향이어야 합니다. 예: 갈등 심화, 관계 변화, 반전, 고백, 추적, 오해 해소.",
     "반드시 아래 JSON 배열 형식으로만 출력하세요. 코드펜스나 설명 문장은 절대 넣지 마세요.",
     '[{"title":"짧은 제목","content":"2~3문장의 구체적인 전개"}]',
     "title은 12자 내외, content는 한국어 2~3문장으로 작성하세요."
@@ -389,7 +482,11 @@ async function handleStory(req, res) {
       { role: "system", content: systemPrompt },
       { role: "user", content: text }
     ], 0.6, 800);
-    const suggestions = parseJsonArray(reply);
+    let suggestions = parseJsonArray(reply);
+    if (!suggestions) {
+      const repaired = await repairStoryJson(apiKey, reply);
+      suggestions = parseJsonArray(repaired);
+    }
     if (!suggestions) {
       sendJson(res, 502, { error: "모델 응답을 파싱하지 못했습니다." });
       return;
@@ -398,6 +495,24 @@ async function handleStory(req, res) {
   } catch (error) {
     sendJson(res, 502, { error: error.message || "story generation failed" });
   }
+}
+
+async function repairStoryJson(apiKey, rawText) {
+  const systemPrompt = [
+    "당신은 텍스트를 엄격한 JSON 배열로 변환하는 도구입니다.",
+    "입력에는 웹소설·시나리오 줄거리 후보가 들어 있습니다.",
+    "의미를 새로 만들거나 내용을 확장하지 말고, 입력에 있는 후보만 정리하세요.",
+    "반드시 아래 형식의 JSON 배열만 출력하세요.",
+    '[{"title":"짧은 제목","content":"2~3문장의 구체적인 전개"}]',
+    "title은 12자 내외로 짧게 정리하세요.",
+    "content는 한국어 2~3문장으로 정리하세요.",
+    "코드펜스, 설명, 머리말, 마크다운은 절대 출력하지 마세요."
+  ].join("\n");
+
+  return requestChatCompletion(apiKey, textModel(), [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: rawText }
+  ], 0.1, 900);
 }
 
 async function handleConsumer(req, res) {
