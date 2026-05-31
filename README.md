@@ -1,6 +1,6 @@
 # Character Studio
 
-캐릭터 대화, 이미지 장면 생성, 이야기 창작, 가상 소비자 반응을 실험하는 웹 프로토타입입니다.
+캐릭터 대화, 이미지 장면 생성, 이야기 창작, 가상 소비자 반응을 실험하는 웹 프로토타입입니다. 한국어와 영어 UI를 지원합니다.
 
 ## 실행
 
@@ -47,6 +47,7 @@ API 키는 `.env`에만 두고 프론트엔드 파일에는 절대 넣지 않습
 
 | 기능 | 상태 | 비고 |
 |------|------|------|
+| 언어 전환 | 로컬 UI + 실제 API | 상단 `EN`/`KO` 버튼으로 한국어·영어 전환. UI 문구와 주요 API 프롬프트에 선택 언어를 함께 전달 |
 | 캐릭터 선택 | 로컬 UI | 캐릭터 카드를 누르면 확인 팝업이 열리고, `다시 선택` 또는 `선택 확정`을 고를 수 있음 |
 | 사용자 페르소나 선택 | 로컬 UI + 실제 API | 페르소나 카드를 누르면 확인 팝업이 열리고, 확정 시 대화 시작. 대화 입력은 `/api/rewrite-tone`으로 말투 보정 |
 | 캐릭터 대화 | 실제 API | `/api/chat` — 캐릭터의 성격·말투를 반영해 응답. 캐릭터별 채팅 배경 이미지가 적용됨 |
@@ -71,6 +72,15 @@ API 키는 `.env`에만 두고 프론트엔드 파일에는 절대 넣지 않습
 - `customImageAppearancePrompt` — 사용자가 직접 작성한 외모 프롬프트. 값이 있으면 `imageBasePrompt`보다 우선 사용
 - `customImageReference` — 이미지 생성 API에 함께 전달할 참고 이미지
 - `chatBackground` — 채팅 화면 배경 이미지
+
+## 다국어 지원
+
+상단 언어 버튼으로 한국어와 영어를 전환할 수 있습니다. 선택한 언어는 `localStorage`에 저장되어 새로고침 후에도 유지됩니다.
+
+- UI 문구: `src/app.js`의 `i18n` 객체에서 관리
+- 캐릭터/페르소나 카드의 영어 표시명·설명: `characterLocales`, `personaLocales`에서 관리
+- API 응답 언어: 프론트엔드가 `language` 값을 함께 보내고, 서버가 `/api/chat`, `/api/rewrite-tone`, `/api/summarize-image-scene`, `/api/story`, `/api/consumer`, `/api/persuade`, `/api/persuade-report` 프롬프트에 반영
+- 이미지 생성: 장면 요약 언어는 선택 언어를 따르고, 캐릭터 외모 프롬프트와 참고 이미지는 기존 설정을 그대로 사용
 
 ## 가상 소비자 페르소나
 
@@ -110,3 +120,5 @@ API 키는 `.env`에만 두고 프론트엔드 파일에는 절대 넣지 않습
 - `POST /api/consumer` — 소비자 유형별 반응 시뮬레이션
 - `POST /api/persuade` — 1:1 설득 대화 응답 + 구매 확률(0~100) 갱신
 - `POST /api/persuade-report` — 설득 대화 분석 보고서 생성
+
+텍스트 API 요청에는 선택 언어를 나타내는 `language` 필드(`Korean` 또는 `English`)가 함께 전달됩니다.

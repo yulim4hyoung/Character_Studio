@@ -108,6 +108,17 @@ function resolveStaticPath(urlPath) {
   return candidate;
 }
 
+function languageFromBody(body) {
+  const value = String(body.language || "").toLowerCase();
+  return value.startsWith("en") ? "English" : "Korean";
+}
+
+function languageRule(language) {
+  return language === "English"
+    ? "Write every user-facing response in natural English."
+    : "사용자에게 보이는 모든 응답은 자연스러운 한국어로 작성하세요.";
+}
+
 async function handleGenerateImage(req, res) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
@@ -246,6 +257,7 @@ async function handleSummarizeImageScene(req, res) {
   }
 
   const body = await readJson(req);
+  const language = languageFromBody(body);
   const character = body.character || {};
   const history = Array.isArray(body.messages) ? body.messages : [];
 
@@ -257,7 +269,7 @@ async function handleSummarizeImageScene(req, res) {
   const conversation = history
     .filter((item) => item && !item.pending && item.content)
     .slice(-10)
-    .map((item) => `${item.role === "user" ? "사용자" : character.name}: ${String(item.content).trim()}`)
+    .map((item) => `${item.role === "user" ? (language === "English" ? "User" : "사용자") : character.name}: ${String(item.content).trim()}`)
     .join("\n");
 
   if (!conversation) {
@@ -267,12 +279,13 @@ async function handleSummarizeImageScene(req, res) {
 
   const systemPrompt = [
     "당신은 대화 내용을 이미지 생성 프롬프트용 장면 요약으로 바꾸는 도구입니다.",
+    languageRule(language),
     "규칙:",
     "1. 대화에서 드러난 현재 상황, 감정, 행동, 장소 단서를 2~4문장으로 요약하세요.",
     "2. 입력에 없는 새 인물, 사건, 소품, 장소를 만들지 마세요.",
     "3. 캐릭터 외모는 쓰지 마세요. 외모 묘사는 별도 프롬프트로 전달됩니다.",
     "4. 이미지 생성 AI가 바로 이해할 수 있게 구체적인 시각 장면 중심으로 작성하세요.",
-    "5. 설명이나 머리말 없이 장면 요약만 한국어로 출력하세요.",
+    "5. 설명이나 머리말 없이 장면 요약만 출력하세요.",
     "",
     "[캐릭터]",
     `이름: ${character.name}`,
@@ -300,6 +313,7 @@ async function handleRewriteTone(req, res) {
   }
 
   const body = await readJson(req);
+  const language = languageFromBody(body);
   const text = String(body.text || "").trim();
   const personaName = String(body.personaName || "").trim();
   const personaPrompt = String(body.personaPrompt || "").trim();
@@ -317,9 +331,10 @@ async function handleRewriteTone(req, res) {
 
   const systemPrompt = [
     "당신은 채팅 메시지의 말투를 특정 페르소나에 맞게 다시 써 주는 도구입니다.",
+    languageRule(language),
     "규칙:",
     "1. 원문의 의미와 의도는 절대 바꾸지 마세요. 새로운 정보, 질문, 답변을 추가하지 마세요.",
-    "2. 원문이 한국어이면 한국어로 유지하세요.",
+    "2. 선택된 언어를 유지하세요.",
     "3. 아래 페르소나의 말투·어조·태도가 드러나도록 문장을 자연스럽게 고쳐 쓰세요.",
     "4. 설명, 따옴표, 머리말 없이 고쳐 쓴 문장만 출력하세요.",
     `페르소나: ${personaName}`,
@@ -371,6 +386,7 @@ async function handleChat(req, res) {
   }
 
   const body = await readJson(req);
+  const language = languageFromBody(body);
   const character = body.character || {};
   const persona = body.persona || {};
   const history = Array.isArray(body.messages) ? body.messages : [];
@@ -389,7 +405,8 @@ async function handleChat(req, res) {
     : "대화 상대(사용자)는 특별한 페르소나 없이 본인으로 대화합니다.";
 
   const systemPrompt = [
-    `당신은 아래 캐릭터를 1인칭으로 연기하는 롤플레이 AI입니다. 캐릭터의 성격과 말투를 일관되게 유지하며 한국어로 자연스럽게 대화하세요.`,
+    `당신은 아래 캐릭터를 1인칭으로 연기하는 롤플레이 AI입니다. 캐릭터의 성격과 말투를 일관되게 유지하세요.`,
+    languageRule(language),
     "",
     "[캐릭터 설정]",
     `이름: ${character.name}`,
@@ -459,6 +476,7 @@ async function handleStory(req, res) {
   }
 
   const body = await readJson(req);
+  const language = languageFromBody(body);
   const text = String(body.text || "").trim();
   if (!text) {
     sendJson(res, 400, { error: "text is required" });
@@ -472,9 +490,10 @@ async function handleStory(req, res) {
     "입력에 등장한 인물의 감정, 목표, 갈등, 분위기를 전개의 중심에 두세요.",
     "필요하다면 다음 전개를 위해 작은 사건이나 선택지를 만들 수 있지만, 기존 이야기와 무관한 새 인물·장소·설정이 갑자기 튀어나오지 않게 하세요.",
     "각 후보는 서로 다른 방향이어야 합니다. 예: 갈등 심화, 관계 변화, 반전, 고백, 추적, 오해 해소.",
+    languageRule(language),
     "반드시 아래 JSON 배열 형식으로만 출력하세요. 코드펜스나 설명 문장은 절대 넣지 마세요.",
     '[{"title":"짧은 제목","content":"2~3문장의 구체적인 전개"}]',
-    "title은 12자 내외, content는 한국어 2~3문장으로 작성하세요."
+    "title은 짧게, content는 2~3문장으로 작성하세요."
   ].join("\n");
 
   try {
@@ -484,7 +503,7 @@ async function handleStory(req, res) {
     ], 0.6, 800);
     let suggestions = parseJsonArray(reply);
     if (!suggestions) {
-      const repaired = await repairStoryJson(apiKey, reply);
+      const repaired = await repairStoryJson(apiKey, reply, language);
       suggestions = parseJsonArray(repaired);
     }
     if (!suggestions) {
@@ -497,15 +516,16 @@ async function handleStory(req, res) {
   }
 }
 
-async function repairStoryJson(apiKey, rawText) {
+async function repairStoryJson(apiKey, rawText, language = "Korean") {
   const systemPrompt = [
     "당신은 텍스트를 엄격한 JSON 배열로 변환하는 도구입니다.",
+    languageRule(language),
     "입력에는 웹소설·시나리오 줄거리 후보가 들어 있습니다.",
     "의미를 새로 만들거나 내용을 확장하지 말고, 입력에 있는 후보만 정리하세요.",
     "반드시 아래 형식의 JSON 배열만 출력하세요.",
     '[{"title":"짧은 제목","content":"2~3문장의 구체적인 전개"}]',
-    "title은 12자 내외로 짧게 정리하세요.",
-    "content는 한국어 2~3문장으로 정리하세요.",
+    "title은 짧게 정리하세요.",
+    "content는 2~3문장으로 정리하세요.",
     "코드펜스, 설명, 머리말, 마크다운은 절대 출력하지 마세요."
   ].join("\n");
 
@@ -523,6 +543,7 @@ async function handleConsumer(req, res) {
   }
 
   const body = await readJson(req);
+  const language = languageFromBody(body);
   const product = String(body.product || "").trim();
   const consumers = Array.isArray(body.consumers) ? body.consumers : [];
   if (!product) {
@@ -544,9 +565,10 @@ async function handleConsumer(req, res) {
     "절대 금지: '이 유형은 ~합니다', '이 소비자는 ~할 것입니다' 같은 제3자 시점의 분석문. reaction은 분석이 아니라 그 사람이 직접 하는 말입니다.",
     "guide에는 해당 소비자의 need와 persuasionKeywords를 공략하기 위한 실행 가능한 조언을 담으세요. (guide는 마케터에게 주는 조언이므로 3인칭이어도 됩니다.)",
     "제품 정보에 실제로 명시된 내용만 근거로 삼으세요. 명시되지 않은 사실(가격, 보증, 기능 등)을 지어내거나 다른 값으로 바꾸지 마세요.",
+    languageRule(language),
     "반드시 아래 JSON 배열 형식으로만 출력하세요. 코드펜스나 설명 문장은 절대 넣지 마세요.",
     '[{"name":"이름","reaction":"그 소비자가 직접 말하는 1인칭 구어체 반응 2~3문장","guide":"이 소비자를 설득하기 위한 실행 가능한 조언 1~2문장"}]',
-    "name 필드에는 아래 목록에 적힌 이름을 글자 그대로 복사하세요(다른 표현으로 바꾸지 마세요). 모든 소비자에 대해 빠짐없이 출력하세요. 한국어로 작성하세요."
+    "name 필드에는 아래 목록에 적힌 이름을 글자 그대로 복사하세요(다른 표현으로 바꾸지 마세요). 모든 소비자에 대해 빠짐없이 출력하세요."
   ].join("\n");
 
   const userContent = [
@@ -583,6 +605,7 @@ async function handlePersuade(req, res) {
   }
 
   const body = await readJson(req);
+  const language = languageFromBody(body);
   const product = String(body.product || "").trim();
   const consumer = body.consumer || {};
   const history = Array.isArray(body.messages) ? body.messages : [];
@@ -594,6 +617,7 @@ async function handlePersuade(req, res) {
 
   const systemPrompt = [
     `당신은 "${consumer.name}"라는 소비자를 1인칭으로 연기합니다. 판매자(사용자)가 아래 제품을 두고 당신을 설득합니다.`,
+    languageRule(language),
     consumer.type ? `당신의 소비 성향 유형: ${consumer.type}` : "",
     consumer.age ? `당신의 나이: ${consumer.age}세` : "",
     consumer.background ? `당신의 배경: ${consumer.background}` : "",
@@ -625,7 +649,12 @@ async function handlePersuade(req, res) {
     if (content) messages.push({ role, content });
   }
   if (history.length === 0) {
-    messages.push({ role: "user", content: "(대화 시작) 제품에 대한 첫인상과 시작 구매 의향을 알려주세요." });
+    messages.push({
+      role: "user",
+      content: language === "English"
+        ? "(Conversation starts) Give your first impression of the product and initial purchase probability."
+        : "(대화 시작) 제품에 대한 첫인상과 시작 구매 의향을 알려주세요."
+    });
   }
 
   try {
@@ -659,6 +688,7 @@ async function handlePersuadeReport(req, res) {
   }
 
   const body = await readJson(req);
+  const language = languageFromBody(body);
   const product = String(body.product || "").trim();
   const consumer = body.consumer || {};
   const history = Array.isArray(body.messages) ? body.messages : [];
@@ -669,35 +699,61 @@ async function handlePersuadeReport(req, res) {
     return;
   }
 
-  const systemPrompt = [
-    "당신은 세일즈 코치입니다. 아래는 판매자가 특정 유형의 가상 소비자를 1:1로 설득한 대화입니다.",
-    "이 대화를 분석해, 해당 소비자의 구매를 이끌어내기 위한 실전 보고서를 한국어 마크다운으로 작성하세요.",
-    "아래 구조를 반드시 따르세요:",
-    `# 설득 보고서 — ${consumer.name}`,
-    "## 요약",
-    "## 잘한 점",
-    "## 아쉬운 점 / 놓친 포인트",
-    "## 이 소비자의 핵심 구매 트리거",
-    "## 다음에 시도할 설득 전략 (3~5개, 구체적이고 실행 가능하게)",
-    "마크다운 외의 군더더기 텍스트(코드펜스, 머리말)는 출력하지 마세요."
-  ].join("\n");
+  const systemPrompt = language === "English"
+    ? [
+      "You are a sales coach. Below is a one-on-one persuasion conversation between a seller and a virtual consumer persona.",
+      "Analyze the conversation and write a practical Markdown report in English.",
+      "Follow this structure exactly:",
+      `# Persuasion Report — ${consumer.name}`,
+      "## Summary",
+      "## What Worked",
+      "## Missed Points",
+      "## Core Purchase Triggers",
+      "## Next Persuasion Strategies (3-5 concrete, actionable items)",
+      "Do not output anything except Markdown."
+    ].join("\n")
+    : [
+      "당신은 세일즈 코치입니다. 아래는 판매자가 특정 유형의 가상 소비자를 1:1로 설득한 대화입니다.",
+      "이 대화를 분석해, 해당 소비자의 구매를 이끌어내기 위한 실전 보고서를 한국어 마크다운으로 작성하세요.",
+      "아래 구조를 반드시 따르세요:",
+      `# 설득 보고서 — ${consumer.name}`,
+      "## 요약",
+      "## 잘한 점",
+      "## 아쉬운 점 / 놓친 포인트",
+      "## 이 소비자의 핵심 구매 트리거",
+      "## 다음에 시도할 설득 전략 (3~5개, 구체적이고 실행 가능하게)",
+      "마크다운 외의 군더더기 텍스트(코드펜스, 머리말)는 출력하지 마세요."
+    ].join("\n");
 
   const transcript = history
-    .map((m) => `${m.role === "user" ? "판매자" : "소비자"}: ${String(m.content || "").trim()}`)
+    .map((m) => `${m.role === "user" ? (language === "English" ? "Seller" : "판매자") : (language === "English" ? "Consumer" : "소비자")}: ${String(m.content || "").trim()}`)
     .join("\n");
 
-  const userContent = [
-    `소비자 유형: ${consumer.name}`,
-    consumer.need ? `니즈: ${consumer.need}` : "",
-    consumer.mood ? `태도: ${consumer.mood}` : "",
-    `최종 구매 의향: ${probability}%`,
-    "",
-    "[제품/서비스 정보]",
-    product,
-    "",
-    "[대화 기록]",
-    transcript
-  ].filter(Boolean).join("\n");
+  const userContent = language === "English"
+    ? [
+      `Consumer Persona: ${consumer.name}`,
+      consumer.need ? `Need: ${consumer.need}` : "",
+      consumer.mood ? `Mood: ${consumer.mood}` : "",
+      `Final Purchase Probability: ${probability}%`,
+      "",
+      "[Product/Service Information]",
+      product,
+      "",
+      "[Conversation Transcript]",
+      transcript
+    ].filter(Boolean).join("\n")
+    : [
+      `소비자 유형: ${consumer.name}`,
+      consumer.need ? `니즈: ${consumer.need}` : "",
+      consumer.mood ? `태도: ${consumer.mood}` : "",
+      `최종 구매 의향: ${probability}%`,
+      "",
+      "[제품/서비스 정보]",
+      product,
+      "",
+      "[대화 기록]",
+      transcript
+    ].filter(Boolean).join("\n");
 
   try {
     const report = await requestChatCompletion(apiKey, textModel(), [
