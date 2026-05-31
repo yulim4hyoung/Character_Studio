@@ -152,6 +152,12 @@
       padding: 28px 20px 40px;
     }
 
+    main:has(#home.active) {
+      width: 100%;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
     .screen { display: none; }
     .screen.active { display: block; }
     .screen.fit-screen {
@@ -160,13 +166,14 @@
 
     #home.active {
       min-height: calc(100vh - 93px);
-      margin: -28px -20px -40px;
+      margin: -28px 0 -40px;
       padding: 28px 20px 40px;
       background:
         linear-gradient(90deg, rgba(10, 16, 18, 0.78), rgba(10, 16, 18, 0.38) 54%, rgba(10, 16, 18, 0.66)),
         url("/main_pic.png");
       background-size: cover;
       background-position: center;
+      background-repeat: no-repeat;
     }
 
     #home .intro {
