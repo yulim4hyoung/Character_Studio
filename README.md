@@ -21,7 +21,6 @@ cp .env.example .env
 ```
 
 **2) `.env`를 열어 `OPENROUTER_API_KEY`에 실제 OpenRouter API 키를 입력합니다.**
-(`.env.example`의 키는 예시 값이라 그대로 두면 API 호출이 실패합니다.)
 
 **3) 서버 실행**
 
