@@ -1282,10 +1282,27 @@ Do not include speech bubbles, text, fonts, words, typography, callouts, flat sh
       if (event.key === "Escape" && !$("#confirmModal").hidden) closeConfirmModal();
     });
 
+    function setTheme(theme) {
+      app.dataset.theme = theme;
+      document.documentElement.dataset.theme = theme;
+    }
+
+    function initTheme() {
+      // 조기 스크립트(index.html)가 documentElement에 OS/저장값 기준 테마를 이미 적용했다.
+      // 여기서는 app 컨테이너에도 같은 값을 맞춰준다.
+      setTheme(document.documentElement.dataset.theme === "dark" ? "dark" : "light");
+      // 사용자가 직접 고른 적이 없으면, OS 설정이 바뀔 때 화면도 실시간으로 따라간다.
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+        if (localStorage.getItem("characterStudioTheme")) return;
+        setTheme(event.matches ? "dark" : "light");
+      });
+    }
+
     $("#themeButton").addEventListener("click", () => {
       const nextTheme = app.dataset.theme === "dark" ? "light" : "dark";
-      app.dataset.theme = nextTheme;
-      document.documentElement.dataset.theme = nextTheme;
+      setTheme(nextTheme);
+      // 사용자가 직접 고른 테마는 기억해, 이후 OS 설정보다 우선 적용한다.
+      localStorage.setItem("characterStudioTheme", nextTheme);
     });
 
     $("#languageButton").addEventListener("click", () => {
@@ -1469,6 +1486,7 @@ Do not include speech bubbles, text, fonts, words, typography, callouts, flat sh
       URL.revokeObjectURL(url);
     });
 
+    initTheme();
     applyTranslations();
     renderCards();
     renderInitialPlaceholders();

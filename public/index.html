@@ -1,13 +1,23 @@
 <!doctype html>
-<html lang="ko" data-theme="light">
+<html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AI Character Studio</title>
+  <script>
+    // 화면이 그려지기 전에 테마를 먼저 정해 깜빡임을 막는다.
+    // 저장된 사용자 선택이 있으면 그것을, 없으면 OS의 다크/라이트 설정을 따른다.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("characterStudioTheme"); } catch (e) {}
+      var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
+    })();
+  </script>
   <link rel="stylesheet" href="/src/styles.css">
 </head>
 <body>
-  <div class="app" data-theme="light">
+  <div class="app">
     <header>
       <div class="topbar">
         <div class="brand" id="brandTitle"><div class="mark">AI</div><span>Character Studio</span></div>
